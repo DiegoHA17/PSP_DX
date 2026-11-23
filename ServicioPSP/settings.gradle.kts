@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "UT1"
+rootProject.name = "ServicioPSP"
 include(":app")

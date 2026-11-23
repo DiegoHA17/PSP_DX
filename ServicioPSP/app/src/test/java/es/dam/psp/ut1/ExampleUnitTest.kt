@@ -1,4 +1,4 @@
-package com.example.ut1
+package es.dam.psp.ut1
 
 import org.junit.Test
 

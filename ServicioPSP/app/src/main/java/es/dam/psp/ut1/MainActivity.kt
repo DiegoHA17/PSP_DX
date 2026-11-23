@@ -1,4 +1,4 @@
-package com.example.ut1
+package es.dam.psp.ut1
 
 import android.Manifest
 import android.app.Activity
@@ -7,12 +7,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
+import android.util.Log
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import kotlin.jvm.java
+import es.dam.psp.ut1.servicio.DescargaService
 
 class MainActivity : Activity() {
 
@@ -20,10 +21,14 @@ class MainActivity : Activity() {
 
     companion object {
         private const val SOLICITUD_NOTIFICACIONES = 100
+        private const val TAG = "PSP-UT1"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Mismo formato que el servicio para comparar PID e hilo en Logcat.
+        Log.d(TAG, "Actividad · onCreate · PID=${Process.myPid()} · hilo=${Thread.currentThread().name}")
 
         textoPid = TextView(this).apply {
             text = "PID de la actividad: ${Process.myPid()}"

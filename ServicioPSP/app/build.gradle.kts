@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ut1"
+    namespace = "es.dam.psp.ut1"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.ut1"
+        applicationId = "es.dam.psp.ut1"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

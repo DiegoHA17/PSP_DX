@@ -1,4 +1,4 @@
-package com.example.ut1
+package es.dam.psp.ut1.servicio
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -8,14 +8,20 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.Process
 import android.util.Log
 
+/**
+ * Servicio en primer plano que simula una descarga en un hilo aparte
+ * y muestra el progreso en una notificación.
+ */
 class DescargaService : Service() {
 
     companion object {
         private const val CHANNEL_ID = "canal_descarga"
         private const val NOTIFICATION_ID = 1001
-        private const val TAG = "DescargaService"
+        private const val TAG = "PSP-UT1"
+        private const val PAUSA_MS = 500L
     }
 
     @Volatile
@@ -23,6 +29,7 @@ class DescargaService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        registrar("onCreate")
         crearCanal()
     }
 
@@ -31,42 +38,65 @@ class DescargaService : Service() {
         flags: Int,
         startId: Int
     ): Int {
+        registrar("onStartCommand")
+
+        // 5.b: pasar a primer plano (tipo dataSync declarado en el manifiesto).
         startForeground(
             NOTIFICATION_ID,
             crearNotificacion(0, "Preparando descarga...")
         )
 
         if (hiloDescarga?.isAlive == true) {
+            registrar("Ya hay una descarga en curso")
             return START_NOT_STICKY
         }
 
-        hiloDescarga = Thread {
-            try {
-                for (progreso in 0..100 step 10) {
-                    if (Thread.currentThread().isInterrupted) {
-                        return@Thread
-                    }
-
-                    actualizarNotificacion(progreso)
-
-                    if (progreso < 100) {
-                        Thread.sleep(500)
-                    }
-                }
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
-                Log.d(TAG, "Descarga cancelada")
-            } finally {
-                hiloDescarga = null
-                stopSelf(startId)
-            }
-        }.apply {
+        // 5.b: la descarga se simula en un hilo aparte, no en el hilo main.
+        hiloDescarga = Thread { descargar() }.apply {
             name = "HiloDescarga"
             start()
         }
 
         return START_NOT_STICKY
     }
+
+    /** Bucle de la descarga simulada; se ejecuta en el hilo HiloDescarga. */
+    private fun descargar() {
+        try {
+            for (progreso in 0..100 step 10) {
+                registrar("Descargando $progreso %")
+                actualizarNotificacion(progreso)
+
+                if (progreso < 100) {
+                    Thread.sleep(PAUSA_MS)
+                }
+            }
+
+            registrar("Descarga completada")
+            // Sale de primer plano pero deja visible la notificación final.
+            stopForeground(STOP_FOREGROUND_DETACH)
+        } catch (e: InterruptedException) {
+            registrar("Descarga cancelada")
+            // Por si se llegó a publicar una actualización tras onDestroy.
+            gestorNotificaciones().cancel(NOTIFICATION_ID)
+        } finally {
+            hiloDescarga = null
+            // stopSelf() sin startId: con stopSelf(startId) el servicio no se
+            // paraba si se había pulsado Iniciar más de una vez.
+            stopSelf()
+        }
+    }
+
+    /** Escribe en Logcat (tag PSP-UT1) el PID, el hilo y el evento. */
+    private fun registrar(evento: String) {
+        Log.d(
+            TAG,
+            "Servicio · $evento · PID=${Process.myPid()} · hilo=${Thread.currentThread().name}"
+        )
+    }
+
+    private fun gestorNotificaciones(): NotificationManager =
+        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     private fun crearCanal() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -76,11 +106,7 @@ class DescargaService : Service() {
                 NotificationManager.IMPORTANCE_LOW
             )
 
-            val gestor = getSystemService(
-                Context.NOTIFICATION_SERVICE
-            ) as NotificationManager
-
-            gestor.createNotificationChannel(canal)
+            gestorNotificaciones().createNotificationChannel(canal)
         }
     }
 
@@ -111,17 +137,15 @@ class DescargaService : Service() {
             "Descargando... $progreso %"
         }
 
-        val gestor = getSystemService(
-            Context.NOTIFICATION_SERVICE
-        ) as NotificationManager
-
-        gestor.notify(
+        gestorNotificaciones().notify(
             NOTIFICATION_ID,
             crearNotificacion(progreso, mensaje)
         )
     }
 
+    // 5.b: al destruir el servicio se cancela la descarga.
     override fun onDestroy() {
+        registrar("onDestroy")
         hiloDescarga?.interrupt()
         hiloDescarga = null
         super.onDestroy()
