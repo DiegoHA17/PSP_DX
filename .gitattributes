@@ -1,0 +1,9 @@
+# Finales de línea coherentes entre Windows y Linux (GitHub Actions)
+* text=auto
+gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.webp binary
+*.png binary
+*.pdf binary

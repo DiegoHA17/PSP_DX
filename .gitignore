@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# .gitignore del repositorio PSP UT1
+# .gitignore del repositorio de PSP (todas las unidades)
 # Cada proyecto Gradle conserva además su propio .gitignore.
 # ---------------------------------------------------------------
 
@@ -25,8 +25,8 @@ captures/
 *.aab
 
 # Datos generados por las prácticas (se regeneran al ejecutarlas)
-procesos/datos/
-procesos/historial.txt
+UT1/procesos/datos/
+UT1/procesos/historial.txt
 
 # Sistema operativo y editores
 .DS_Store
