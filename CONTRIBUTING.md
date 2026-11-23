@@ -72,9 +72,48 @@ La definición completa está en [`.github/labels.json`](.github/labels.json).
 - Un **milestone por unidad** (`UT2 · <título de la unidad>`), sin fecha
   inventada: solo se pone la fecha de entrega oficial si se conoce. Se cierra
   cuando la unidad está evaluada, aunque queden Issues técnicos abiertos.
-- Tablero **GitHub Projects** de la asignatura con los estados *Por hacer*,
-  *En progreso*, *En revisión* y *Terminado*. Se filtra por unidad y tipo con
-  las etiquetas (por ejemplo `label:UT2 label:practica`).
+- Tablero [**PSP 2026-27**](https://github.com/users/DiegoHA17/projects/2)
+  (GitHub Projects, privado), vinculado a este repositorio. Se configura con
+  `node scripts/github/configurar-github.mjs proyecto --aplicar`.
+
+### Estados
+
+| Estado | Significado | Cómo llega |
+|--------|-------------|------------|
+| Por hacer | Issue creado, sin empezar | Automático al añadirse al tablero |
+| En progreso | Rama creada, en desarrollo | A mano, al crear la rama |
+| En revisión | PR abierto, pendiente de revisión y CI | Automático al vincular un PR al Issue |
+| Terminado | Issue cerrado | Automático al cerrarse el Issue (`Closes #N` o a mano) |
+
+Una práctica solo está *Terminada* cuando se cierra su Issue: fusionar un PR
+con `Refs #N` no la termina. Por eso la vista **Tablero** muestra solo Issues
+(`is:issue`) y los PR tienen su propia vista.
+
+### Vistas
+
+| Vista | Tipo | Filtro |
+|-------|------|--------|
+| Tablero | Kanban por estado | `is:issue` |
+| Prácticas | Tabla con milestone y progreso de sub-issues | `is:issue label:practica` |
+| Pull requests | Tabla | `is:pr` |
+| Errores y mejoras | Tabla | `label:bug,enhancement,refactor,documentation` |
+
+Para ver una unidad, se añade al filtro `label:UT2` o `milestone:"UT2 · …"`.
+
+### Automatizaciones (Project → ⋯ → Workflows)
+
+Activas: *Item added to project* → Por hacer, *Item closed* → Terminado,
+*Pull request merged* → Terminado, *Auto-close issue*, *Auto-add sub-issues to
+project* y *Pull request linked to issue*.
+
+Ajustes que la API de GitHub no permite y se hacen una vez en la web:
+
+1. *Pull request linked to issue*: estado destino **En revisión**.
+2. *Item added to project*: aplicar solo a **Issues** (los PR no deben
+   aparecer como «Por hacer»).
+3. *Auto-add to project*: activarlo para `DiegoHA17/PSP_DX` con el filtro
+   `is:issue,pr is:open`.
+4. En la vista *Prácticas*: **Group by → Milestone** (agrupar por unidad).
 
 ## Añadir una unidad nueva
 
@@ -84,4 +123,6 @@ La definición completa está en [`.github/labels.json`](.github/labels.json).
 3. Crear la etiqueta `UT<N>` y el milestone (ver
    [`scripts/github/configurar-github.mjs`](scripts/github/configurar-github.mjs)).
 4. Añadir el proyecto Gradle de consola a la matriz de
-   [`.github/workflows/compilar.yml`](.github/workflows/compilar.yml).
+   [`.github/workflows/compilar.yml`](.github/workflows/compilar.yml) y, si
+   hay proyecto Android, su ruta y un job en
+   [`.github/workflows/android.yml`](.github/workflows/android.yml).
