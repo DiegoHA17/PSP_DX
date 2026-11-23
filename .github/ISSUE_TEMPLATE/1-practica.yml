@@ -1,0 +1,75 @@
+name: Nueva práctica
+description: Issue principal de una práctica de una unidad didáctica.
+title: "[UTN-PN] "
+labels: ["practica"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Sustituye `UTN-PN` del título (por ejemplo `[UT2-P1] Contador con hilos`).
+        Después asigna la etiqueta de la unidad (`UT2`…) y su milestone.
+        Si la práctica tiene partes grandes, crea un sub-issue por parte.
+  - type: input
+    id: unidad
+    attributes:
+      label: Unidad y práctica
+      placeholder: "UT2 · Práctica 1"
+    validations:
+      required: true
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Qué se aprende o se demuestra con la práctica, en una o dos frases.
+    validations:
+      required: true
+  - type: textarea
+    id: enunciado
+    attributes:
+      label: Enunciado
+      description: Referencia al PDF (nombre del fichero y apartado) o resumen del enunciado.
+      placeholder: "UT2_Practicas_entregables.pdf · Práctica 1, apartados a) a e)"
+    validations:
+      required: true
+  - type: textarea
+    id: requisitos
+    attributes:
+      label: Requisitos funcionales
+      value: |
+        - [ ] a)
+        - [ ] b)
+    validations:
+      required: true
+  - type: textarea
+    id: tareas
+    attributes:
+      label: Tareas
+      value: |
+        - [ ] Crear la rama `feat/utN-practicaN`
+        - [ ] Implementar
+        - [ ] Probar los casos del enunciado
+        - [ ] Documentar resultados y respuestas en `UTN/documentacion/`
+        - [ ] Abrir el Pull Request
+    validations:
+      required: true
+  - type: textarea
+    id: aceptacion
+    attributes:
+      label: Criterios de aceptación
+      description: Condiciones comprobables para dar la práctica por terminada.
+      value: |
+        - [ ] Compila sin errores (`./gradlew build`)
+        - [ ] Cumple todos los requisitos del enunciado
+        - [ ] La documentación incluye resultados reales y, si se piden, capturas con el usuario visible
+    validations:
+      required: true
+  - type: textarea
+    id: archivos
+    attributes:
+      label: Archivos o proyectos relacionados
+      placeholder: "UT2/hilos/src/main/kotlin/es/dam/psp/ut2/practicas/..."
+  - type: textarea
+    id: referencias
+    attributes:
+      label: Issues relacionados
+      placeholder: "Depende de #N · Relacionado con #M"

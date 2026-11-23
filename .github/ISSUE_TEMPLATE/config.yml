@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Forma de trabajo del repositorio
+    url: https://github.com/DiegoHA17/PSP_DX/blob/main/CONTRIBUTING.md
+    about: Ciclo Issue → rama → Pull Request, convención de ramas, commits y etiquetas.

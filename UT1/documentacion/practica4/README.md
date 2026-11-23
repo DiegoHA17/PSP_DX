@@ -15,10 +15,10 @@ Código (paquete `es.dam.psp.ut1.practicas`):
 > repositorio ni en el historial de Git ni en este equipo, así que **no se han
 > inventado**. Se han conservado byte a byte y solo se han movido a su paquete.
 > Hay que copiar encima los originales, regenerar `datos/` y repetir las
-> mediciones (ver `PENDIENTES_EVIDENCIAS.md`).
+> mediciones (ver [`REVISION.md`](../REVISION.md)).
 
 ```bash
-cd procesos
+cd UT1/procesos
 ./gradlew run -Pmain=es.dam.psp.ut1.practicas.GeneradorDatosKt
 ./gradlew run -Pmain=es.dam.psp.ut1.practicas.CoordinadorKt
 ./gradlew run -Pmain=es.dam.psp.ut1.practicas.CoordinadorKt --args="limitado"   # mejora opcional

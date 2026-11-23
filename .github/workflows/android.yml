@@ -1,0 +1,36 @@
+# Compila el proyecto Android de la UT1 y ejecuta sus tests unitarios.
+# De momento solo se lanza a mano (pestaña Actions → Run workflow): hay que
+# comprobar una primera vez que el runner descarga el SDK 37 y el JDK que pide
+# el daemon de Gradle 9.6. Cuando haya pasado en verde, se puede añadir:
+#   pull_request:
+#     paths: ["UT1/ServicioPSP/**"]
+name: Compilar Android (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  servicio-psp:
+    name: UT1/ServicioPSP
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: UT1/ServicioPSP
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            UT1/ServicioPSP/**/*.gradle.kts
+            UT1/ServicioPSP/gradle/libs.versions.toml
+            UT1/ServicioPSP/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Compilar APK de depuración y ejecutar tests unitarios
+        run: ./gradlew assembleDebug testDebugUnitTest --no-daemon

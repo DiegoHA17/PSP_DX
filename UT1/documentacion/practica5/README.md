@@ -106,4 +106,4 @@ en `ps`: Android lo deja en caché y lo elimina cuando necesita memoria.
 
 > Estos registros se obtuvieron para verificar el comportamiento; **no sustituyen
 > las capturas** que pide el enunciado (en ellas debe verse tu usuario o nombre).
-> Qué capturar exactamente: `PENDIENTES_EVIDENCIAS.md`.
+> Las capturas que quedaron pendientes en la revisión se listan en [`REVISION.md`](../REVISION.md).

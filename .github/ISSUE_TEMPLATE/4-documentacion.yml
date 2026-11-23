@@ -1,0 +1,29 @@
+name: Documentación
+description: Crear o corregir READMEs, explicaciones, resultados o evidencias.
+title: "[UTN] "
+labels: ["documentation"]
+body:
+  - type: input
+    id: ubicacion
+    attributes:
+      label: Unidad y documento
+      placeholder: "UT2 · UT2/documentacion/practica1/README.md"
+    validations:
+      required: true
+  - type: textarea
+    id: cambio
+    attributes:
+      label: Qué hay que documentar o corregir
+    validations:
+      required: true
+  - type: textarea
+    id: fuentes
+    attributes:
+      label: Fuentes
+      description: Enunciado, salidas reales de ejecución o capturas en las que se basa. No se documentan resultados que no se hayan obtenido.
+  - type: textarea
+    id: tareas
+    attributes:
+      label: Tareas
+      value: |
+        - [ ]

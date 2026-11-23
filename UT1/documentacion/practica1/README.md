@@ -1,7 +1,7 @@
 # Práctica 1 — Planificación de procesos
 
 El trabajo de esta práctica está en el documento de entrega
-(`documentacion/UT-1_entrega_v1.pdf`, páginas 2-4). Esta página **no lo rehace**:
+([`UT-1_entrega_v1.pdf`](../UT-1_entrega_v1.pdf), páginas 2-4). Esta página **no lo rehace**:
 recoge la comprobación de los resultados y las dos correcciones que hay que
 trasladar al documento.
 
