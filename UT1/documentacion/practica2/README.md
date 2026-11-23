@@ -11,7 +11,7 @@ inicio (`info().startInstant()`, en UTC) y tiempo total de CPU
 (`info().totalCpuDuration()`, formato ISO-8601, p. ej. `PT0.625S` = 0,625 s).
 
 ```bash
-cd procesos
+cd UT1/procesos
 ./gradlew run -Pmain=es.dam.psp.ut1.practicas.BuscarProcesosKt --args="java"
 ```
 
@@ -29,4 +29,4 @@ sistema) se muestra `-`.
 | c) BuscarProcesos | Captura de la salida buscando `java` | Correcta. Si se repite, hacerlo con la clase nueva `BuscarProcesosKt` |
 | d) prioridad baja | Captura del Administrador de tareas con prioridad «Baja» | Correcta. Conviene que se vea la orden `start /low java -cp ... es.dam.psp.ut1.ejemplos.DormilonKt 120` |
 
-Las capturas no se han rehecho ni simulado; ver `PENDIENTES_EVIDENCIAS.md`.
+Las capturas no se han rehecho ni simulado; ver [`REVISION.md`](../REVISION.md).

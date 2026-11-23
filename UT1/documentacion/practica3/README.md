@@ -4,7 +4,7 @@ Código: `procesos/src/main/kotlin/es/dam/psp/ut1/practicas/Lanzador.kt`
 (única versión; las cuatro anteriores siguen en el historial de Git).
 
 ```bash
-cd procesos
+cd UT1/procesos
 ./gradlew run -Pmain=es.dam.psp.ut1.practicas.LanzadorKt
 ```
 
