@@ -4,8 +4,25 @@ import java.io.File
 import java.io.IOException
 import kotlin.system.measureTimeMillis
 
+/** Resultado que devuelve un Contador para un fichero. */
+data class Resultado(
+    val fichero: String,
+    val lineas: Long,
+    val palabras: Long,
+    val caracteres: Long,
+    val palabraMasFrecuente: String
+)
 
+/** Resultados de un modo de ejecución y el tiempo que ha tardado. */
+data class Ejecucion(
+    val resultados: List<Resultado>,
+    val milisegundos: Long
+)
 
+/**
+ * 4.a: arranca un proceso Contador cuya entrada estándar es el fichero
+ * (redirectInput) y que hereda la salida de error del padre.
+ */
 private fun lanzarContador(fichero: File): Process {
     require(fichero.isFile) {
         "No existe el fichero: ${fichero.absolutePath}"
@@ -15,6 +32,7 @@ private fun lanzarContador(fichero: File): Process {
         .lowercase()
         .contains("win")
 
+    // Misma JVM y mismo classpath que el Coordinador.
     val java = File(
         System.getProperty("java.home"),
         "bin${File.separator}java${if (esWindows) ".exe" else ""}"
@@ -33,6 +51,10 @@ private fun lanzarContador(fichero: File): Process {
         .start()
 }
 
+/**
+ * 4.b: lee la línea del hijo, espera a que termine y construye el Resultado.
+ * Si el código de salida no es 0 lanza una excepción con un mensaje claro.
+ */
 private fun recogerResultado(
     fichero: File,
     hijo: Process
@@ -80,6 +102,7 @@ private fun recogerResultado(
     }
 }
 
+/** 4.c: procesa los ficheros de uno en uno. */
 private fun secuencial(ficheros: List<File>): Ejecucion {
     val resultados = mutableListOf<Resultado>()
 
@@ -93,6 +116,7 @@ private fun secuencial(ficheros: List<File>): Ejecucion {
     return Ejecucion(resultados, tiempo)
 }
 
+/** 4.d: lanza todos los hijos y después recoge los resultados. */
 private fun concurrente(ficheros: List<File>): Ejecucion {
     val resultados = mutableListOf<Resultado>()
 
@@ -111,6 +135,41 @@ private fun concurrente(ficheros: List<File>): Ejecucion {
     return Ejecucion(resultados, tiempo)
 }
 
+/**
+ * Mejora opcional: nunca hay más de [maximo] hijos vivos a la vez.
+ * Cuando se recoge un hijo se lanza el siguiente fichero pendiente.
+ */
+private fun concurrenteLimitado(
+    ficheros: List<File>,
+    maximo: Int
+): Ejecucion {
+    require(maximo > 0) {
+        "El máximo de procesos debe ser mayor que cero."
+    }
+
+    val resultados = mutableListOf<Resultado>()
+
+    val tiempo = measureTimeMillis {
+        val pendientes = ficheros.iterator()
+        val activos = ArrayDeque<Pair<File, Process>>()
+
+        while (pendientes.hasNext() || activos.isNotEmpty()) {
+            // Rellenar hasta el máximo permitido.
+            while (pendientes.hasNext() && activos.size < maximo) {
+                val fichero = pendientes.next()
+                activos.addLast(fichero to lanzarContador(fichero))
+            }
+
+            // Recoger el hijo más antiguo para liberar una plaza.
+            val (fichero, hijo) = activos.removeFirst()
+            resultados.add(recogerResultado(fichero, hijo))
+        }
+    }
+
+    return Ejecucion(resultados, tiempo)
+}
+
+/** 4.e: tabla con el resultado de cada fichero y una fila TOTAL. */
 private fun imprimirTabla(resultados: List<Resultado>) {
     println(
         "%-22s %10s %10s %12s %25s".format(
@@ -135,23 +194,34 @@ private fun imprimirTabla(resultados: List<Resultado>) {
         )
     }
 
-    // Calcular los totales de líneas, palabras y caracteres.
-    val totalLineas = resultados.sumOf { it.lineas }
-    val totalPalabras = resultados.sumOf { it.palabras }
-    val totalCaracteres = resultados.sumOf { it.caracteres }
-
     println("-".repeat(85))
     println(
         "%-22s %10d %10d %12d".format(
             "TOTAL",
-            totalLineas,
-            totalPalabras,
-            totalCaracteres
+            resultados.sumOf { it.lineas },
+            resultados.sumOf { it.palabras },
+            resultados.sumOf { it.caracteres }
         )
     )
 }
 
-fun main() {
+/** Compara dos ejecuciones fichero a fichero (Resultado es data class). */
+private fun mismosResultados(a: Ejecucion, b: Ejecucion): Boolean =
+    a.resultados.sortedBy { it.fichero } == b.resultados.sortedBy { it.fichero }
+
+/** Aceleración = tiempo secuencial / tiempo concurrente. */
+private fun aceleracion(secuencialMs: Long, concurrenteMs: Long): String =
+    if (concurrenteMs > 0) {
+        "%.2f".format(secuencialMs.toDouble() / concurrenteMs)
+    } else {
+        "N/D"
+    }
+
+/**
+ * Uso: sin argumentos ejecuta los modos secuencial y concurrente.
+ * Con el argumento "limitado" mide además concurrenteLimitado con 1, 2, 4 y 8.
+ */
+fun main(args: Array<String>) {
     val directorio = File("datos")
 
     if (!directorio.isDirectory) {
@@ -171,48 +241,49 @@ fun main() {
         return
     }
 
+    val nucleos = Runtime.getRuntime().availableProcessors()
     println("Ficheros encontrados: ${ficheros.size}")
+    println("Procesadores lógicos detectados: $nucleos")
 
-    // Ejecutar el modo secuencial.
     val secuencial = secuencial(ficheros)
-
     println("\n=== RESULTADOS SECUENCIALES ===")
     imprimirTabla(secuencial.resultados)
 
-    // Ejecutar el modo concurrente.
     val concurrente = concurrente(ficheros)
-
     println("\n=== RESULTADOS CONCURRENTES ===")
     imprimirTabla(concurrente.resultados)
 
-    // Ordenar por nombre para comparar los mismos ficheros.
-    val resultadosSecuenciales =
-        secuencial.resultados.sortedBy { it.fichero }
-
-    val resultadosConcurrentes =
-        concurrente.resultados.sortedBy { it.fichero }
-
-    // Resultado.equals compara todos los campos del data class.
-    val equivalentes =
-        resultadosSecuenciales == resultadosConcurrentes
-
     println("\n=== COMPROBACIÓN ===")
-    if (equivalentes) {
+    if (mismosResultados(secuencial, concurrente)) {
         println("CORRECTO: ambos modos producen los mismos resultados.")
     } else {
-        println("ERROR: los resultados secuenciales y concurrentes no coinciden.")
+        System.err.println("ERROR: los resultados secuenciales y concurrentes no coinciden.")
     }
 
     println("\n=== TIEMPOS ===")
     println("Tiempo secuencial: ${secuencial.milisegundos} ms")
     println("Tiempo concurrente: ${concurrente.milisegundos} ms")
+    println(
+        "Aceleración (speedup): " +
+                aceleracion(secuencial.milisegundos, concurrente.milisegundos) +
+                " (máximo teórico: $nucleos)"
+    )
 
-    if (concurrente.milisegundos > 0) {
-        val aceleracion =
-            secuencial.milisegundos.toDouble() / concurrente.milisegundos
+    if (args.firstOrNull() == "limitado") {
+        println("\n=== MEJORA OPCIONAL: concurrenteLimitado ===")
+        println("%-14s %12s %12s %12s".format("Máximo hijos", "Tiempo (ms)", "Aceleración", "Coinciden"))
+        println("-".repeat(53))
 
-        println("Aceleración (speedup): %.2f".format(aceleracion))
-    } else {
-        println("Aceleración no calculable: tiempo concurrente de 0 ms.")
+        for (maximo in listOf(1, 2, 4, 8)) {
+            val limitado = concurrenteLimitado(ficheros, maximo)
+            println(
+                "%-14d %12d %12s %12s".format(
+                    maximo,
+                    limitado.milisegundos,
+                    aceleracion(secuencial.milisegundos, limitado.milisegundos),
+                    if (mismosResultados(secuencial, limitado)) "sí" else "NO"
+                )
+            )
+        }
     }
 }
