@@ -1,16 +1,23 @@
 # Compila el proyecto Android de la UT1 y ejecuta sus tests unitarios.
-# De momento solo se lanza a mano (pestaña Actions → Run workflow): hay que
-# comprobar una primera vez que el runner descarga el SDK 37 y el JDK que pide
-# el daemon de Gradle 9.6. Cuando haya pasado en verde, se puede añadir:
-#   pull_request:
-#     paths: ["UT1/ServicioPSP/**"]
-name: Compilar Android (manual)
+# Se lanza en los Pull Requests que modifican el proyecto Android (o este
+# workflow) y a mano desde la pestaña Actions. Validado en GitHub con la
+# ejecución manual 45291502586. Para un proyecto Android de otra unidad,
+# añade su ruta a "paths" y un job como este.
+name: Compilar Android
 
 on:
+  pull_request:
+    paths:
+      - "UT1/ServicioPSP/**"
+      - ".github/workflows/android.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   servicio-psp:
