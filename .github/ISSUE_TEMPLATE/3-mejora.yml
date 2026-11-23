@@ -1,0 +1,39 @@
+name: Mejora o refactorización
+description: Mejora del código o reorganización sin cambiar el resultado de la práctica.
+title: "[UTN] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Si solo se reorganiza código sin cambiar el comportamiento, cambia la
+        etiqueta `enhancement` por `refactor`. En unidades ya evaluadas, evita
+        cambiar el código entregado salvo para corregir errores.
+  - type: input
+    id: ubicacion
+    attributes:
+      label: Unidad, práctica y archivos
+      placeholder: "UT2 · Práctica 3 · UT2/hilos/..."
+    validations:
+      required: true
+  - type: textarea
+    id: motivo
+    attributes:
+      label: Situación actual y motivo
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Cambio propuesto
+    validations:
+      required: true
+  - type: textarea
+    id: aceptacion
+    attributes:
+      label: Criterios de aceptación
+      value: |
+        - [ ] Compila y la práctica da el mismo resultado que antes
+        - [ ]
+    validations:
+      required: true

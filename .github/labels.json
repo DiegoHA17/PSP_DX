@@ -1,0 +1,16 @@
+[
+  { "name": "UT1", "color": "1d76db", "description": "Unidad 1 · Procesos y servicios" },
+
+  { "name": "practica", "color": "0e8a16", "description": "Issue principal o parte de una práctica" },
+  { "name": "bug", "color": "d73a4a", "description": "Algo no compila, falla o no cumple el enunciado" },
+  { "name": "enhancement", "color": "a2eeef", "description": "Mejora del código o de una práctica" },
+  { "name": "refactor", "color": "c5def5", "description": "Reorganización sin cambiar el comportamiento" },
+  { "name": "documentation", "color": "0075ca", "description": "READMEs, explicaciones, resultados o evidencias" },
+
+  { "name": "priority:high", "color": "b60205", "description": "Prioridad alta" },
+  { "name": "priority:medium", "color": "fbca04", "description": "Prioridad media" },
+  { "name": "priority:low", "color": "c2e0c6", "description": "Prioridad baja" },
+
+  { "name": "blocked", "color": "000000", "description": "Bloqueado por algo externo (material, permisos, dependencia)" },
+  { "name": "needs-review", "color": "d4c5f9", "description": "Pendiente de revisión antes de cerrar o fusionar" }
+]

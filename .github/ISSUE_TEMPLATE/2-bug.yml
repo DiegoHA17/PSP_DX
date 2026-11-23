@@ -1,0 +1,41 @@
+name: Error
+description: Algo no compila, falla o no se comporta como pide el enunciado.
+title: "[UTN] "
+labels: ["bug"]
+body:
+  - type: input
+    id: ubicacion
+    attributes:
+      label: Unidad, práctica y archivo
+      placeholder: "UT2 · Práctica 1 · UT2/hilos/.../Contador.kt"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Qué ocurre
+      description: Incluye el mensaje de error o la salida, si existe.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué debería ocurrir
+    validations:
+      required: true
+  - type: textarea
+    id: reproducir
+    attributes:
+      label: Cómo reproducirlo
+      placeholder: |
+        1. cd UT2/hilos
+        2. ./gradlew run -Pmain=...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: entorno
+    attributes:
+      label: Entorno
+      placeholder: "Windows 11 · JDK 21 · IntelliJ 2024.1"
