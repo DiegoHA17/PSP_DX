@@ -7,7 +7,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.Process
 import android.util.Log
 
@@ -24,8 +26,10 @@ class DescargaService : Service() {
         private const val PAUSA_MS = 500L
     }
 
-    @Volatile
+    /** Hilo de la descarga en curso. Solo se lee y modifica en el hilo main. */
     private var hiloDescarga: Thread? = null
+
+    private val hiloMain = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -46,7 +50,8 @@ class DescargaService : Service() {
             crearNotificacion(0, "Preparando descarga...")
         )
 
-        if (hiloDescarga?.isAlive == true) {
+        // Sigue habiendo descarga hasta que terminarDescarga la cierra.
+        if (hiloDescarga != null) {
             registrar("Ya hay una descarga en curso")
             return START_NOT_STICKY
         }
@@ -62,6 +67,9 @@ class DescargaService : Service() {
 
     /** Bucle de la descarga simulada; se ejecuta en el hilo HiloDescarga. */
     private fun descargar() {
+        val hilo = Thread.currentThread()
+        var completada = false
+
         try {
             for (progreso in 0..100 step 10) {
                 registrar("Descargando $progreso %")
@@ -72,19 +80,36 @@ class DescargaService : Service() {
                 }
             }
 
+            completada = true
             registrar("Descarga completada")
-            // Sale de primer plano pero deja visible la notificación final.
-            stopForeground(STOP_FOREGROUND_DETACH)
         } catch (e: InterruptedException) {
             registrar("Descarga cancelada")
-            // Por si se llegó a publicar una actualización tras onDestroy.
-            gestorNotificaciones().cancel(NOTIFICATION_ID)
         } finally {
-            hiloDescarga = null
-            // stopSelf() sin startId: con stopSelf(startId) el servicio no se
-            // paraba si se había pulsado Iniciar más de una vez.
-            stopSelf()
+            // El cierre se hace en el hilo main, el mismo de onStartCommand y
+            // onDestroy, para que no pueda intercalarse con ellos.
+            hiloMain.post { terminarDescarga(hilo, completada) }
         }
+    }
+
+    /** Se ejecuta en el hilo main cuando termina el hilo de descarga. */
+    private fun terminarDescarga(hilo: Thread, completada: Boolean) {
+        if (hiloDescarga !== hilo) {
+            // onDestroy ya canceló esta descarga: se retira cualquier
+            // notificación que el hilo publicara después.
+            gestorNotificaciones().cancel(NOTIFICATION_ID)
+            return
+        }
+
+        hiloDescarga = null
+
+        if (completada) {
+            // Sale de primer plano pero deja visible la notificación final.
+            stopForeground(STOP_FOREGROUND_DETACH)
+        }
+
+        // stopSelf() sin startId: con stopSelf(startId) el servicio no se
+        // paraba si se había pulsado Iniciar más de una vez.
+        stopSelf()
     }
 
     /** Escribe en Logcat (tag PSP-UT1) el PID, el hilo y el evento. */
