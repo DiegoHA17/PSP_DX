@@ -1,0 +1,37 @@
+# ---------------------------------------------------------------
+# .gitignore del repositorio PSP UT1
+# Cada proyecto Gradle conserva además su propio .gitignore.
+# ---------------------------------------------------------------
+
+# Compilaciones y cachés de Gradle / Kotlin
+.gradle/
+build/
+.kotlin/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Configuración local del IDE (IntelliJ IDEA / Android Studio)
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Configuración local de Android
+local.properties
+.cxx/
+.externalNativeBuild/
+captures/
+*.apk
+*.aab
+
+# Datos generados por las prácticas (se regeneran al ejecutarlas)
+procesos/datos/
+procesos/historial.txt
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+*.log
+*.tmp
