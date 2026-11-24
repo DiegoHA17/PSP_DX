@@ -57,7 +57,7 @@ const VISTAS = [
   {
     name: "Errores y mejoras",
     layout: "TABLE_LAYOUT",
-    filter: "label:bug,enhancement,refactor,documentation",
+    filter: "is:issue label:bug,enhancement,refactor,documentation",
     campos: ["Title", "Status", "Milestone", "Labels", "Linked pull requests"],
   },
 ];
