@@ -96,7 +96,7 @@ con `Refs #N` no la termina. Por eso la vista **Tablero** muestra solo Issues
 | Tablero | Kanban por estado | `is:issue` |
 | Prácticas | Tabla con milestone y progreso de sub-issues | `is:issue label:practica` |
 | Pull requests | Tabla | `is:pr` |
-| Errores y mejoras | Tabla | `label:bug,enhancement,refactor,documentation` |
+| Errores y mejoras | Tabla | `is:issue label:bug,enhancement,refactor,documentation` |
 
 Para ver una unidad, se añade al filtro `label:UT2` o `milestone:"UT2 · …"`.
 
