@@ -1,0 +1,40 @@
+IA: Codex (codex-cli 0.170.0), modo solo lectura, 26/11/2026.
+Prompt (el de ejemplo del enunciado, con «Lee AGENTS.md y sigue sus reglas» delante y las reglas R1-R5 nombradas):
+Analiza TaquillaIA.kt frente al contrato de Taquilla.kt. Enumera cada condición de carrera: líneas implicadas,
+intercalado de dos hilos que la produce y qué regla del contrato rompe. No modifiques ningún fichero.
+Primer intento: se quedó colgado a mitad de la respuesta (idle_timeout). Segundo intento, pidiendo máximo 35 líneas:
+
+Las líneas corresponden a `TaquillaIA.kt`. Las carreras están relacionadas: varias pueden aparecer en una misma ejecución.
+
+1. Comprobar aforo y actualizar el contador no es atómico (L30, L36–38, L43).
+   - Con aforo 1, Hilo 1 comprueba `0 + 1 <= 1`; Hilo 2 comprueba lo mismo.
+   - Ambos comprueban que el asiento 0 está libre antes de que ninguno lo escriba.
+   - Hilo 1 lo vende e incrementa; Hilo 2 también: ambos devuelven `[0]`, contador = 2.
+   - Rompe R3 (sobreventa), además de R2 por la carrera siguiente.
+
+2. Comprobar un asiento y ocuparlo son operaciones separadas (L36–38).
+   - Con aforo 2, Hilo 1 consulta el asiento 0: libre; Hilo 2 también: libre.
+   - Hilo 1 guarda su cliente; Hilo 2 sobrescribe ese cliente; ambos devuelven `[0]`.
+   - Rompe R2 (asiento repetido). El mapa conserva un asiento ocupado y el contador suma dos: R4.
+
+3. La compra completa no es indivisible y puede devolver una lista parcial (L30, L34–45).
+   - Con aforo 3, ambos hilos piden 2 y superan L30 antes de actualizarse el contador.
+   - Hilo 1 ocupa el asiento 0 y se pausa; Hilo 2 ocupa 1 y 2 y termina.
+   - Hilo 1 continúa, no encuentra más libres, suma 2 al contador, cobra 50 y devuelve `[0]`.
+   - Rompe R1 (entrega parcial), R4 (contador 4 para 3 asientos) y R5 (cobra 100 por 3 entradas).
+
+4. Actualización perdida de la caja (L44).
+   - Ambos hilos han asignado un asiento distinto; la caja todavía vale 0.
+   - Hilo 1 lee 0 para sumarle 25; Hilo 2 lee 0 y escribe 25; Hilo 1 escribe 25.
+   - Tras terminar ambos, hay 2 entradas vendidas y solo 25 euros: rompe R5.
+
+5. Publicación separada del contador y la caja (L43–44, L48, L50).
+   - Hilo 1 asigna un asiento, incrementa el contador a 1 y se pausa antes de actualizar la caja.
+   - Hilo 2 llama primero a `vendidas()` y obtiene 1; después a `recaudado()` y obtiene 0.
+   - Rompe R5: las consultas revelan una venta contabilizada cuyo importe todavía no figura.
+
+6. Lectura de caja sin garantía de visibilidad (L26, L44, L50).
+   - Hilo 1 termina una compra y escribe 25; Hilo 2 consulta la caja sin sincronización entre ambos.
+   - Hilo 2 puede seguir leyendo el valor anterior, 0: rompe R5, incluso sin actualizaciones perdidas.
+
+`AtomicInteger` y `ConcurrentHashMap` protegen operaciones individuales; ningún cerrojo común protege los invariantes de la compra.

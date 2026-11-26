@@ -1,0 +1,64 @@
+diff --git a/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaEspera.kt b/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaEspera.kt
+index 72f444f..afc4771 100644
+--- a/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaEspera.kt
++++ b/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaEspera.kt
+@@ -9,13 +9,54 @@ package es.dam.psp.ut2.guiada
+  */
+ class TaquillaEspera(override val aforo: Int) : TaquillaConEspera {
+ 
+-    override fun comprar(cliente: String, n: Int): List<Int> = TODO("Reto C")
++    private val cerrojo = Object()
++    private val asientos = mutableMapOf<Int, String>()
++    private var contador = 0
++    private var caja = 0L
+ 
+-    override fun vendidas(): Int = TODO("Reto C")
++    // Bajo cerrojo, cada asiento tiene un solo dueño y, al terminar cada operación:
++    // contador == asientos.size, 0 <= contador <= aforo y caja == contador * PRECIO.
++    override fun comprar(cliente: String, n: Int): List<Int> = synchronized(cerrojo) {
++        if (n <= 0 || n > aforo - contador) return@synchronized emptyList()
+ 
+-    override fun recaudado(): Long = TODO("Reto C")
++        val asignados = mutableListOf<Int>()
++        for (asiento in 0 until aforo) {
++            if (asignados.size == n) break
++            if (!asientos.containsKey(asiento)) {
++                asientos[asiento] = cliente
++                asignados.add(asiento)
++            }
++        }
+ 
+-    override fun devolver(cliente: String, asiento: Int): Boolean = TODO("Reto C")
++        contador += n
++        caja += n * PRECIO
++        asignados
++    }
+ 
+-    override fun esperarEntrada(cliente: String): Int? = TODO("Reto C")
++    override fun vendidas(): Int = synchronized(cerrojo) { contador }
++
++    override fun recaudado(): Long = synchronized(cerrojo) { caja }
++
++    override fun devolver(cliente: String, asiento: Int): Boolean = synchronized(cerrojo) {
++        if (asientos[asiento] != cliente) return@synchronized false
++
++        asientos.remove(asiento)
++        contador--
++        caja -= PRECIO
++        cerrojo.notifyAll()
++        true
++    }
++
++    override fun esperarEntrada(cliente: String): Int? = synchronized(cerrojo) {
++        while (contador >= aforo) {
++            try {
++                cerrojo.wait()
++            } catch (_: InterruptedException) {
++                return@synchronized null
++            }
++        }
++
++        // synchronized es reentrante: la compra conserva el mismo cerrojo.
++        comprar(cliente, 1).first()
++    }
+ }

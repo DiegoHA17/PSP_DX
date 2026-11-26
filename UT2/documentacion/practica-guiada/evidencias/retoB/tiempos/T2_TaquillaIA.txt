@@ -1,0 +1,10 @@
+# 26/11/2026 17:44:50 · usuario: DIEGO · rama: feat/ut2-practica-guiada
+# fabrica: val fabrica: (Int) -> Taquilla = ::TaquillaIA val fabricaEspera: (Int) -> TaquillaConEspera = ::TaquillaEspera 
+Taquilla: TaquillaIA · 30 rondas · 16 hilos · aforo 200 · tiempo 161.182ms
+  R1 todo o nada                 OK
+  R2 asiento vendido dos veces   ROTA en 30/30 rondas
+  R3 sobreventa                  ROTA en 30/30 rondas
+  R4 vendidas() no cuadra        ROTA en 1/30 rondas
+  R5 recaudado() no cuadra       ROTA en 8/30 rondas
+  Primer fallo · Ronda 1: entregados 230 asientos, vendidas()=230, recaudado()=5750 € (debería ser 5750 €)
+VEREDICTO: INCORRECTA

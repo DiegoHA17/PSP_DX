@@ -7,8 +7,9 @@
 > Versión en Markdown de la hoja de registro; el Word que se entrega es
 > `UT2_Hoja_de_registro.docx` (mismo contenido). Lo marcado como **[PENDIENTE]**
 > lo completa el alumno siguiendo [`PENDIENTES.md`](PENDIENTES.md). Los datos
-> rellenos son de ejecuciones reales hechas por Claude en la terminal; las
-> respuestas de IA son de Codex (opencode aún no se ha usado).
+> rellenos son de ejecuciones reales hechas por Claude en la terminal (salidas
+> completas en [`evidencias/`](evidencias/README.md)); las respuestas de IA y el
+> código de los Retos B y C son de Codex (opencode aún no se ha usado).
 
 | Reto | Qué debe aparecer (enunciado) |
 |------|-------------------------------|
@@ -28,11 +29,11 @@
 
 | Regla | Ejec. 1 | Ejec. 2 | Ejec. 3 |
 |-------|:-------:|:-------:|:-------:|
-| R1 todo o nada | 5/30 | 3/30 | 5/30 |
+| R1 todo o nada | 7/30 | 4/30 | 2/30 |
 | R2 asiento repetido | 30/30 | 30/30 | 30/30 |
-| R3 sobreventa | 30/30 | 30/30 | 30/30 |
-| R4 `vendidas()` | 7/30 | 4/30 | 6/30 |
-| R5 `recaudado()` | 10/30 | 10/30 | 12/30 |
+| R3 sobreventa | 30/30 | 30/30 | 28/30 |
+| R4 `vendidas()` | 8/30 | 4/30 | 2/30 |
+| R5 `recaudado()` | 13/30 | 6/30 | 6/30 |
 
 No sale lo mismo cada vez porque el orden en que se intercalan los hilos lo
 decide el planificador del sistema operativo: una carrera solo aparece si dos
@@ -74,22 +75,29 @@ ventas al llegar a 200. R4 es consecuencia de la compra parcial. R5 tiene causa 
 
 ## Reto B
 
-**Prompt:** [PENDIENTE: prompt enviado de verdad en opencode Build; el preparado está en `PENDIENTES.md`, Reto B a]
+**Prompt:** el de `PENDIENTES.md`, Reto B a), enviado a **Codex** (modo
+escritura, rama de pruebas) con «cumple AGENTS.md, no compiles ni ejecutes».
+[PENDIENTE: si se repite en opencode Build, poner el prompt que se envíe de verdad]
 
-**Número de vueltas:** [PENDIENTE] (la versión de Claude, escrita sin opencode, pasó a la primera)
+**Ficheros que tocó la IA:** solo `TaquillaSegura.kt`; no hubo que deshacer nada
+(`evidencias/retoB/codex_TaquillaSegura.patch`).
+
+**Número de vueltas:** 1 (el código de Codex pasó a la primera; la versión anterior
+de Claude, también)
 
 **Captura final:** [PENDIENTE: captura 2, `TaquillaSegura` con R1-R5 OK]
 
-Resultado real (versión de la rama, tres ejecuciones): R1-R5 OK en las tres.
+Resultado real (código de Codex, tres ejecuciones, `evidencias/retoB/B1` a `B3`):
+R1-R5 OK en las tres.
 
-**Lista de comprobación** (sobre la versión de la rama; revisar si opencode genera otra):
+**Lista de comprobación** (sobre el código de Codex, que es el de la rama):
 
 | Pregunta | Respuesta |
 |----------|-----------|
-| Sección crítica y cerrojo | `comprar` desde la comprobación de libres hasta sumar la caja, con `synchronized(cerrojo)`. Dueños, vendidas y caja solo se tocan con ese cerrojo |
-| «Comprobar y actuar» fuera del cerrojo | No; solo `if (n <= 0)`, que no mira datos compartidos |
+| Sección crítica y cerrojo | Todo `comprar`, desde la comprobación de libres hasta sumar la caja, con `synchronized(cerrojo)`. `asientos`, `contador` y `caja` solo se tocan con ese cerrojo |
+| «Comprobar y actuar» fuera del cerrojo | No; todo el cuerpo de `comprar` está dentro, también `if (n <= 0 \|\| n > aforo - contador)` |
 | Lecturas | `vendidas()` y `recaudado()` usan el mismo cerrojo; sin él podría verse un valor antiguo |
-| Herramientas mezcladas | No; dentro del cerrojo solo hay un array y variables normales |
+| Herramientas mezcladas | No; dentro del cerrojo solo hay un mapa normal y variables normales |
 | Varios cerrojos | No, uno solo |
 
 **Apartado e:** el verificador solo prueba los intercalados que salen en 30
@@ -99,10 +107,11 @@ después de `join()`.
 
 | Taquilla | Ejec. 1 | Ejec. 2 | Ejec. 3 | Media |
 |----------|--------:|--------:|--------:|------:|
-| `TaquillaIA` | 227,3 ms | 244,4 ms | 205,9 ms | 225,9 ms |
-| `TaquillaSegura` | 163,1 ms | 155,6 ms | 193,6 ms | 170,8 ms |
+| `TaquillaIA` | 185,5 ms | 161,2 ms | 163,9 ms | 170,2 ms |
+| `TaquillaSegura` | 171,0 ms | 151,6 ms | 161,4 ms | 161,3 ms |
 
-[PENDIENTE: sustituir por los tiempos propios si se repiten las mediciones]
+(Una tanda seguida, `evidencias/retoB/tiempos/` y `B1` a `B3`.)
+[PENDIENTE: sustituir por los tiempos de IntelliJ si se repiten las mediciones]
 
 La corrección no ha salido más cara; con tres ejecuciones y tanta variación no
 se puede concluir más.
@@ -124,16 +133,19 @@ espera, captura `InterruptedException` y devuelve `null`.
 
 **Versión rota a propósito (`while` → `if`):** [PENDIENTE: captura 4]
 
-Resultado real: E3 rota en 4/5 rondas (igual en las tres ejecuciones) y
-excepciones `ArrayIndexOutOfBoundsException: Index -1`. Con `if`, los hilos que
-despierta `notifyAll()` no vuelven a comprobar si queda sitio, intentan ocupar
-el asiento -1 y mueren sin entrada, así que se sirve a menos de 6.
+Resultado real con el código de Codex (`TaquillaEspera` OK: E1-E6 en las tres
+ejecuciones, `evidencias/retoC/C1` a `C3`). Con `if`: E3 rota en 4/5 rondas
+(igual en las tres ejecuciones, `C1_if_roto` a `C3_if_roto`) y excepciones
+`NoSuchElementException: List is empty`. Con `if`, los hilos que despierta
+`notifyAll()` no vuelven a comprobar si queda sitio: `comprar(cliente, 1)`
+devuelve una lista vacía, `.first()` lanza la excepción y el hilo muere sin
+entrada, así que se sirve a menos de 6.
 
 **Apartado d:** deben estar en WAITING, dormidos en `wait()` sin tiempo hasta un
 `notifyAll()` o una interrupción. TIMED_WAITING significa que esperan con tiempo
 (`wait(ms)` o `sleep`) y se despiertan cada poco a mirar aunque nadie haya
 devuelto nada: es espera activa. Probado con `wait(50)`: E2-E6 OK pero E1 rota
-en 5/5 rondas.
+en 5/5 rondas (`evidencias/retoC/C_wait50`).
 
 **Apartado e:** [PENDIENTE: respuesta de opencode en modo Plan]
 
@@ -157,4 +169,5 @@ asientos con un solo aviso.
 - Repositorio: https://github.com/DiegoHA17/PSP_DX
 - Pull request: https://github.com/DiegoHA17/PSP_DX/pull/8
 - Commits por reto: código de partida `710aacc` · Reto A `c0c91de` · Reto B
-  `a3cc316` · Reto C `62160d1`
+  `a3cc316` (versión de Claude) y `fda5ebe` (código de Codex) · Reto C `62160d1`
+  (versión de Claude) y `ec72d97` (código de Codex)

@@ -174,18 +174,19 @@ la tabla de la hoja. Al terminar, deja la línea con `::TaquillaSegura`.
 **Romperlo a propósito con `if`** (si todo salió OK a la primera):
 
 1. En `TaquillaEspera.kt`, busca la línea de la espera. Si opencode lo escribió
-   como en la rama principal, es:
+   como en la rama del PR (código de Codex), es:
    ```kotlin
-   while (vendidas == aforo) cerrojo.wait()
+   while (contador >= aforo) {
    ```
    Cámbiala por:
    ```kotlin
-   if (vendidas == aforo) cerrojo.wait()
+   if (contador >= aforo) {
    ```
    (si sus nombres son otros, cambia solo la palabra `while` por `if`).
 2. ▶ `VerificadorEspera` **3 veces**. Apunta qué reglas se rompen. Lo esperable
-   es E3 rota en algunas rondas y excepciones `ArrayIndexOutOfBoundsException`
-   en la consola (el README explica por qué).
+   es E3 rota en algunas rondas y excepciones en la consola:
+   `NoSuchElementException: List is empty` con el código de Codex, o la que
+   corresponda al código de opencode (el README explica por qué).
 3. **Captura 4:** la ejecución con `if`, con las reglas rotas y tu usuario visible.
 4. **Restaura el `while`:** vuelve a escribir `while` o, en la ventana Commit,
    botón derecho sobre `TaquillaEspera.kt` > Rollback (si hiciste commit antes).

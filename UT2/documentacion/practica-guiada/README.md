@@ -24,21 +24,22 @@ cd UT2/hilos
 
 Equipo de las mediciones: AMD Ryzen 7 5800H (8 núcleos / 16 hilos), Windows 11
 Home, JDK 21. Las salidas de este documento son de ejecuciones reales desde la
-terminal (`java` sobre las clases compiladas por Gradle), no desde IntelliJ.
+terminal (`./gradlew run`), no desde IntelliJ. Cada salida está entera, con
+fecha, usuario y línea `fabrica`, en [`evidencias/`](evidencias/README.md).
 
 ## Quién ha hecho qué
 
 | Parte | Hecho por |
 |-------|-----------|
 | Análisis de `TaquillaIA`, intercalados y tablas de reglas (Reto A a, b y d) | Claude (asistente de programación) |
-| Código de `TaquillaSegura` y `TaquillaEspera` | Claude, escrito directamente (no con el agente Build de opencode) |
-| Ejecuciones de los verificadores, la versión rota con `if` y la prueba con `wait(50)` | Claude, en la terminal |
+| Código de `TaquillaSegura` y `TaquillaEspera` | Codex en modo escritura, con los prompts preparados para opencode, en la rama de pruebas `prueba/ut2-opencode` (commits `643f175` y `09d7932`). Claude revisó el diff y lo pasó a esta rama (`fda5ebe`, `ec72d97`). La primera versión la había escrito Claude directamente (`a3cc316`, `62160d1`) |
+| Ejecuciones de los verificadores, la versión rota con `if` y la prueba con `wait(50)` | Claude, en la terminal, sobre el código de Codex |
 | Auditoría de `TaquillaIA` (Reto A c) y pregunta sobre `notify()` (Reto C e) | Codex, en modo solo lectura (respuestas reales) |
 | Revisión independiente del código y de este documento | Codex, en modo solo lectura |
 | Uso de opencode (Plan y Build), revisión del diff en IntelliJ, capturas con el usuario y reflexión final | **Pendiente del alumno**: ver [`PENDIENTES.md`](PENDIENTES.md) |
 
-Todavía no se ha usado opencode. Los prompts para opencode que aparecen abajo
-están preparados, pero no se han enviado.
+Todavía no se ha usado opencode. Los prompts de los Retos B y C se enviaron a
+Codex en lugar de a opencode, y el código que generó es el que hay en la rama.
 
 ---
 
@@ -49,32 +50,34 @@ están preparados, pero no se han enviado.
 Salida de la primera ejecución:
 
 ```text
-Taquilla: TaquillaIA · 30 rondas · 16 hilos · aforo 200 · tiempo 227.268800ms
-  R1 todo o nada                 ROTA en 5/30 rondas
+Taquilla: TaquillaIA · 30 rondas · 16 hilos · aforo 200 · tiempo 145.094500ms
+  R1 todo o nada                 ROTA en 7/30 rondas
   R2 asiento vendido dos veces   ROTA en 30/30 rondas
   R3 sobreventa                  ROTA en 30/30 rondas
-  R4 vendidas() no cuadra        ROTA en 7/30 rondas
-  R5 recaudado() no cuadra       ROTA en 10/30 rondas
-  Primer fallo · Ronda 1: entregados 230 asientos, vendidas()=230, recaudado()=5750 € (debería ser 5750 €)
+  R4 vendidas() no cuadra        ROTA en 8/30 rondas
+  R5 recaudado() no cuadra       ROTA en 13/30 rondas
+  Primer fallo · Ronda 1: entregados 231 asientos, vendidas()=231, recaudado()=5650 € (debería ser 5775 €)
 VEREDICTO: INCORRECTA
 ```
 
 | Regla | Ejecución 1 | Ejecución 2 | Ejecución 3 |
 |-------|:-----------:|:-----------:|:-----------:|
-| R1 todo o nada | 5/30 | 3/30 | 5/30 |
+| R1 todo o nada | 7/30 | 4/30 | 2/30 |
 | R2 asiento repetido | 30/30 | 30/30 | 30/30 |
-| R3 sobreventa | 30/30 | 30/30 | 30/30 |
-| R4 `vendidas()` | 7/30 | 4/30 | 6/30 |
-| R5 `recaudado()` | 10/30 | 10/30 | 12/30 |
-| Primer fallo (ronda 1) | 230 entregados, caja 5750 € (bien) | 221 entregados, caja 5425 € (debería 5525 €) | 227 entregados, caja 5625 € (debería 5675 €) |
+| R3 sobreventa | 30/30 | 30/30 | 28/30 |
+| R4 `vendidas()` | 8/30 | 4/30 | 2/30 |
+| R5 `recaudado()` | 13/30 | 6/30 | 6/30 |
+| Primer fallo (ronda 1) | 231 entregados, caja 5650 € (debería 5775 €) | 222 entregados, caja 5550 € (bien) | 216 entregados, caja 5400 € (bien) |
+
+(Evidencias `retoA/A1` a `A3`.)
 
 Se rompen las cinco reglas, pero no siempre en las mismas rondas. Una condición
 de carrera solo aparece cuando dos hilos se intercalan justo dentro de la zona
 peligrosa, y ese intercalado lo decide el planificador del sistema operativo
 (núcleos libres, cuándo se expulsa a cada hilo, carga del equipo…). Cada
 ejecución es un reparto distinto, así que cambian los números. R2 y R3 salen en
-todas las rondas porque todos los hilos recorren los mismos asientos desde el 0
-a la vez; R1 y R4 solo aparecen cuando quedan los últimos asientos, que es un
+casi todas las rondas porque todos los hilos recorren los mismos asientos desde
+el 0 a la vez (en la tercera ejecución, R3 se libró en 2 rondas); R1 y R4 solo aparecen cuando quedan los últimos asientos, que es un
 momento muy corto de cada ronda.
 
 ### b) Secciones críticas sin proteger
@@ -199,9 +202,10 @@ hacer. Y `caja` ni siquiera es atómica.
 
 ### a) Prompt para opencode (agente Build)
 
-> **Pendiente de enviar.** `TaquillaSegura` la escribió Claude directamente. Este
-> es el prompt preparado para el Reto B; hay que enviarlo en opencode y anotar
-> qué pasa (ver `PENDIENTES.md`).
+> Prompt preparado para opencode. **Se envió a Codex** (modo escritura, rama de
+> pruebas), añadiendo solo «cumple AGENTS.md, no compiles ni ejecutes»; su
+> respuesta y su diff están en `evidencias/retoB/`. En opencode sigue sin
+> enviarse (ver `PENDIENTES.md`).
 
 > Implementa la clase TaquillaSegura en guiada/TaquillaSegura.kt cumpliendo el
 > contrato de guiada/Taquilla.kt. comprar(cliente, n) es todo o nada: si no
@@ -225,18 +229,22 @@ hacer. Y `caja` ni siquiera es atómica.
 
 ### b) Qué cambia el código
 
-Respecto al código de partida, en la rama solo cambian `TaquillaSegura.kt` y la
-línea `fabrica` de `Verificador.kt` (comprobado con `diff` contra el zip). Usa
-`synchronized` sobre un `Any()` privado, un `arrayOfNulls<String>` para los
-dueños y dos variables normales: todo es del apartado 6.1 de los apuntes.
+Codex solo modificó `TaquillaSegura.kt` (diff en
+`evidencias/retoB/codex_TaquillaSegura.patch`); la línea `fabrica` la cambia el
+alumno. Usa `synchronized` sobre un `Any()` privado, un `mutableMapOf<Int, String>`
+normal para los dueños y dos variables normales (`contador` y `caja`): todo es
+del apartado 6.1 de los apuntes. La comprobación `n > aforo - contador` y la
+venta están dentro del mismo `synchronized`, y deja escrito en un comentario el
+invariante que protege el cerrojo (`contador == asientos.size` y
+`caja == contador * PRECIO`).
 
-> **Pendiente:** revisar el diff de lo que genere opencode en la ventana Commit
-> de IntelliJ (ficheros tocados y herramientas usadas).
+> **Pendiente:** revisar ese mismo diff en la ventana Commit de IntelliJ, o el
+> de opencode si se repite con él.
 
 ### c) Verificador con `fabrica = ::TaquillaSegura`
 
 ```text
-Taquilla: TaquillaSegura · 30 rondas · 16 hilos · aforo 200 · tiempo 163.070400ms
+Taquilla: TaquillaSegura · 30 rondas · 16 hilos · aforo 200 · tiempo 170.953300ms
   R1 todo o nada                 OK
   R2 asiento vendido dos veces   OK
   R3 sobreventa                  OK
@@ -245,19 +253,20 @@ Taquilla: TaquillaSegura · 30 rondas · 16 hilos · aforo 200 · tiempo 163.070
 VEREDICTO: ninguna regla rota en 30 rondas (no demuestra que sea correcta)
 ```
 
-Las ejecuciones 2 y 3 dieron lo mismo (todo OK) en 155,6 ms y 193,6 ms. La
-versión de Claude pasó a la primera.
+Las ejecuciones 2 y 3 dieron lo mismo (todo OK) en 151,6 ms y 161,4 ms
+(evidencias `retoB/B1` a `B3`). El código de Codex pasó a la primera:
+**1 vuelta**. La versión anterior de Claude también había pasado a la primera.
 
-> **Pendiente:** número de vueltas con opencode y captura final.
+> **Pendiente:** captura final en IntelliJ con el usuario visible.
 
 ### d) Lista de comprobación
 
 | Pregunta | Respuesta para `TaquillaSegura` |
 |----------|---------------------------------|
-| ¿Sección crítica y cerrojo? ¿Todo el estado con el mismo cerrojo? | La sección crítica es `comprar` desde que mira cuántos quedan hasta que actualiza la caja. La protege `synchronized(cerrojo)`, y `duenos`, `vendidas` y `caja` solo se tocan dentro de ese cerrojo. Así siempre se cumple: `vendidas` = asientos con dueño y `caja` = `vendidas` × 25 |
-| ¿Queda algún «comprobar y actuar» fuera del cerrojo? | No. El `if (aforo - vendidas < n)` y el `if (duenos[asiento] == null)` están dentro. Lo único fuera es `if (n <= 0)`, que no mira datos compartidos |
+| ¿Sección crítica y cerrojo? ¿Todo el estado con el mismo cerrojo? | La sección crítica es todo `comprar`, desde que mira cuántos quedan hasta que actualiza la caja. La protege `synchronized(cerrojo)`, y `asientos`, `contador` y `caja` solo se tocan dentro de ese cerrojo. Así siempre se cumple: `contador` = asientos con dueño y `caja` = `contador` × 25 |
+| ¿Queda algún «comprobar y actuar» fuera del cerrojo? | No. Todo el cuerpo de `comprar` está dentro del `synchronized`, también `if (n <= 0 \|\| n > aforo - contador)` y el `containsKey` + asignación de cada asiento |
 | ¿Los métodos de lectura usan cerrojo, `@Volatile` o atómica? | Sí, `vendidas()` y `recaudado()` usan `synchronized(cerrojo)`. Sin eso, otro hilo podría ver un valor antiguo (problema de visibilidad) |
-| ¿Mezcla herramientas sin necesidad? | No: dentro del `synchronized` solo hay un array y variables normales |
+| ¿Mezcla herramientas sin necesidad? | No: dentro del `synchronized` solo hay un mapa normal (no `ConcurrentHashMap`) y variables normales (no atómicas) |
 | ¿Más de un cerrojo? ¿Mismo orden? | Un único cerrojo, así que no hay riesgo de interbloqueo por orden |
 
 ### e) ¿Por qué «no demuestra que sea correcta»?
@@ -270,15 +279,16 @@ verificador seguiría saliendo OK, porque solo las llama desde `main` después d
 `join()`. El fallo de visibilidad solo aparece si se consulta la caja mientras
 se vende, y el verificador no lo hace.
 
-Tiempos (mismo equipo, tres ejecuciones de 30 rondas):
+Tiempos (mismo equipo, una tanda de tres ejecuciones de 30 rondas con cada
+taquilla, una detrás de otra; evidencias `retoB/tiempos/` y `retoB/B1` a `B3`):
 
 | Taquilla | Ejec. 1 | Ejec. 2 | Ejec. 3 | Media |
 |----------|--------:|--------:|--------:|------:|
-| `TaquillaIA` | 227,3 ms | 244,4 ms | 205,9 ms | 225,9 ms |
-| `TaquillaSegura` | 163,1 ms | 155,6 ms | 193,6 ms | 170,8 ms |
+| `TaquillaIA` | 185,5 ms | 161,2 ms | 163,9 ms | 170,2 ms |
+| `TaquillaSegura` | 171,0 ms | 151,6 ms | 161,4 ms | 161,3 ms |
 
 La corrección no ha salido más cara; en estas mediciones la segura ha tardado
-incluso algo menos. No se puede sacar mucho más: son solo tres ejecuciones, los
+incluso algo menos (lo mismo pasó con la versión anterior de Claude). No se puede sacar mucho más: son solo tres ejecuciones, los
 tiempos varían bastante entre ellas y las dos clases no hacen el mismo trabajo
 (la de la IA reparte asientos repetidos). Cada compra dentro del cerrojo es muy
 corta, así que esperar al cerrojo apenas se nota.
@@ -300,8 +310,9 @@ corta, así que esperar al cerrojo apenas se nota.
 
 ### b) Implementación
 
-> **Pendiente de enviar.** `TaquillaEspera` la escribió Claude directamente. Prompt
-> preparado para opencode (agente Build):
+> Prompt preparado para opencode (agente Build). **Se envió a Codex** (modo
+> escritura, rama de pruebas, con la regla ya en `AGENTS.md`); respuesta y diff
+> en `evidencias/retoC/`. En opencode sigue sin enviarse:
 
 > Implementa TaquillaEspera en guiada/TaquillaEspera.kt cumpliendo
 > TaquillaConEspera de guiada/Taquilla.kt. comprar, vendidas y recaudado igual
@@ -312,17 +323,21 @@ corta, así que esperar al cerrojo apenas se nota.
 > uno. Sigue las reglas de AGENTS.md sobre cómo esperar. Modifica solo
 > TaquillaEspera.kt.
 
-Cómo es el código: el cerrojo es un `Object()` (con `Any()` Kotlin no deja
-llamar a `wait()`/`notifyAll()`), la venta de un asiento está en una función
-privada `vender` que solo se llama con el cerrojo cogido, `devolver` comprueba
-el rango y el dueño antes de cambiar nada, y `esperarEntrada` hace
-`while (vendidas == aforo) cerrojo.wait()`. Al capturar `InterruptedException`
-vuelve a marcar el hilo como interrumpido antes de devolver `null`, para no
-perder la interrupción.
+Cómo es el código de Codex (solo tocó `TaquillaEspera.kt`): el cerrojo es un
+`Object()` (con `Any()` Kotlin no deja llamar a `wait()`/`notifyAll()`), y
+`comprar`, `vendidas` y `recaudado` son iguales que en `TaquillaSegura`.
+`devolver` comprueba que `asientos[asiento] == cliente` antes de cambiar nada
+(un asiento fuera de rango da `null` y devuelve `false`), resta 1 a `contador`,
+25 € a la caja y llama a `notifyAll()`. `esperarEntrada` hace
+`while (contador >= aforo) cerrojo.wait()` y después `comprar(cliente, 1).first()`
+dentro del mismo `synchronized`, que es reentrante. Al capturar
+`InterruptedException` devuelve `null`. A diferencia de la versión de Claude, no
+vuelve a marcar el hilo como interrumpido: el contrato no lo pide, pero quien
+llame ya no puede saber que lo interrumpieron.
 
 ### c) `VerificadorEspera`
 
-Versión final (tres ejecuciones, todas iguales):
+Versión final (tres ejecuciones, todas iguales; evidencias `retoC/C1` a `C3`):
 
 ```text
 Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
@@ -336,8 +351,8 @@ VEREDICTO: ninguna regla rota (no demuestra que sea correcta)
 ```
 
 Como salió OK a la primera, se rompió a propósito cambiando el `while` por un
-`if` (`if (vendidas == aforo) cerrojo.wait()`). Resultado, igual en las tres
-ejecuciones:
+`if` (`if (contador >= aforo) { ... cerrojo.wait() ... }`). Resultado, igual en
+las tres ejecuciones (evidencias `retoC/C1_if_roto` a `C3_if_roto`):
 
 ```text
 Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
@@ -353,14 +368,16 @@ VEREDICTO: INCORRECTA
 Además, por la consola salen muchas excepciones en los hilos que esperan:
 
 ```text
-Exception in thread "espera-5" java.lang.ArrayIndexOutOfBoundsException: Index -1 out of bounds for length 20
+Exception in thread "espera-7" java.util.NoSuchElementException: List is empty.
 ```
 
 Por qué: cada `devolver` hace `notifyAll()` y despierta a los 10 que esperan,
 pero solo hay un asiento libre. El primero que coge el cerrojo se lo lleva. Los
 demás, con `if`, no vuelven a mirar la condición y siguen como si hubiera sitio:
-`indexOfFirst { it == null }` devuelve -1 y `duenos[-1]` lanza la excepción, que
-mata al hilo. Esos hilos se quedan sin entrada aunque luego se devuelvan más
+`comprar(cliente, 1)` ve que no queda ninguno y devuelve una lista vacía, y
+`.first()` lanza la excepción, que mata al hilo. (Con la versión de Claude la
+excepción era `ArrayIndexOutOfBoundsException: Index -1`: el fallo es el mismo y
+solo cambia dónde revienta.) Esos hilos se quedan sin entrada aunque luego se devuelvan más
 asientos, así que se sirve a menos de 6 clientes → **E3**. E5 sale OK porque
 los hilos muertos ya no están vivos, y E6 porque la excepción salta antes de
 tocar las cuentas. En una de las cinco rondas el reparto coincidió y no se
@@ -381,7 +398,8 @@ devuelto nada. Es una espera activa disfrazada: gasta CPU y cerrojo para nada y
 tarda en enterarse. Puede vender bien, pero no espera como debe, y E1 lo
 comprueba mirando el estado de los hilos a los 300 ms. Se probó cambiando
 `cerrojo.wait()` por `cerrojo.wait(50)`: vende todo bien (E2 a E6 OK) pero
-**E1 sale ROTA en 5/5 rondas**.
+**E1 sale ROTA en 5/5 rondas** (evidencia `retoC/C_wait50`, ya con el código de
+Codex; con la versión de Claude salió lo mismo).
 
 ### e) ¿Podría usar `notify()` en lugar de `notifyAll()`?
 
@@ -426,7 +444,10 @@ de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.
 > que se pueden usar:
 
 - `TaquillaIA` se entregó como «completamente thread-safe» y rompe las cinco
-  reglas: R2 y R3 en todas las rondas, R1, R4 y R5 en algunas.
+  reglas: R2 y R3 en casi todas las rondas, R1, R4 y R5 en algunas.
+- El código que generó Codex para los Retos B y C pasó los verificadores a la
+  primera y solo tocó el fichero pedido, pero eso se supo al revisar el diff y
+  ejecutar; Codex no compiló ni probó nada.
 - En la auditoría, Codex encontró todas las carreras reales y solo dio una que
   no rompe el contrato. Al revisar su respuesta se le marcó como error algo que
   era correcto, y fue el propio Codex quien lo hizo ver después: también hay que
