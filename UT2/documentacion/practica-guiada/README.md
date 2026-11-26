@@ -361,3 +361,16 @@ cambios bastante normales:
 
 Por eso la regla de los apuntes es usar `notifyAll()` salvo que se esté seguro
 de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.
+
+---
+
+## Cierre
+
+La IA acierta en lo que se le pide de forma concreta: encontró las condiciones
+de carrera reales y, con un prompt que decía qué cerrojo usar y qué fallos
+evitar, escribió una versión que pasa los verificadores. Lo que hace mal es
+afirmar: `TaquillaIA` se entregó como «completamente thread-safe» y rompe las
+cinco reglas en casi todas las rondas, y en la auditoría también dio por fallo
+algo que no lo era. Habría entregado código incorrecto en el primer momento, si
+me hubiera fiado de esa frase sin ejecutar el verificador, y en el Reto C con un
+`if` en lugar de `while`, que parece igual al leerlo y falla en 4 de cada 5 rondas.

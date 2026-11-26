@@ -33,6 +33,7 @@ jobs:
       matrix:
         proyecto:
           - UT1/procesos
+          - UT2/hilos
     defaults:
       run:
         working-directory: ${{ matrix.proyecto }}
