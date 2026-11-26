@@ -127,14 +127,21 @@ Prompt usado (el de ejemplo del enunciado):
 > cada condición de carrera: líneas implicadas, intercalado de dos hilos que la
 > produce y qué regla del contrato rompe. No modifiques ningún fichero.
 
+La IA devolvió seis carreras. La primera vez se quedó colgada a mitad de la
+respuesta y tuve que repetir la pregunta pidiéndole una respuesta más corta.
+
 | Fallo | Lo encontré yo | Lo encontró la IA | ¿Real? |
 |-------|:--------------:|:-----------------:|--------|
-| 1. `containsKey` + `put` (36-37) | Sí | Sí | Real (R2, y por él R3) |
-| 2. Comprobar aforo y vender por separado (30-43) | Sí | Sí | Real (R1, R4, R5) |
-| 3. `caja +=` sin sincronizar (44) | Sí | Sí | Real (R5) |
-| 4. `addAndGet(n)` suma lo pedido, no lo entregado (43) | Sí (dentro del 2) | Sí, como fallo aparte | Real, aunque solo se nota cuando ocurre el 2 |
-| 5. Visibilidad de `caja` en `recaudado()` (50) | Sí | Sí | Real, pero el verificador no lo ve |
-| 6. «`vendidas()` puede devolver un valor desactualizado» | No | Sí | Falso positivo: `AtomicInteger` ya garantiza visibilidad; que el valor cambie justo después es normal |
+| `containsKey` + `put` (36-37) | Sí (fallo 1) | Sí (su n.º 2) | Real: R2. Dice que también rompe R4 porque el mapa guarda un dueño y el contador suma dos. Según el contrato es cierto, pero el verificador cuenta los asientos entregados (dos), así que R4 no sale por esto |
+| Comprobar el aforo con `contador.get()` y vender después (30, 43) | Sí (fallo 2) | Sí (su n.º 1) | **Mal atribuido.** Dice que por sí solo provoca sobreventa (R3) con aforo 1, pero su intercalado necesita que los dos hilos vean libre el asiento 0, que es el fallo de `containsKey` + `put`. Como los asientos solo van de 0 a aforo-1, sin repetidos no hay R3. Es el mismo fallo contado dos veces |
+| Compra parcial: `addAndGet(n)` y cobro de lo pedido (30-45) | Sí (fallos 2 y 4) | Sí (su n.º 3) | Real: R1, R4 y R5. Su intercalado con aforo 3 es correcto |
+| `caja +=` sin sincronizar (44) | Sí (fallo 3) | Sí (su n.º 4) | Real: R5 |
+| `vendidas()` y `recaudado()` se leen por separado (43-44, 48, 50) | No | Sí (su n.º 5) | **Falso positivo para el contrato.** Es cierto que entre las dos líneas el contador ya ha subido y la caja todavía no, pero el contrato no pide leer las dos cosas a la vez, y R5 se comprueba al final. En `TaquillaSegura` también pueden leerse en momentos distintos, porque son dos llamadas con el cerrojo |
+| Visibilidad de `caja` en `recaudado()` (26, 50) | Sí (fallo 4) | Sí (su n.º 6) | Real, pero el verificador no lo ve (lee después de `join()`) |
+
+No se le escapó ninguno de los míos. Lo que hizo peor fue separar causas y
+consecuencias: aunque dijo que lo iba a hacer, dos de sus seis puntos son
+consecuencias de otro fallo o no rompen ninguna regla.
 
 ### d) ¿Por qué «es thread-safe porque usa AtomicInteger y ConcurrentHashMap» es falso?
 
@@ -340,7 +347,19 @@ bien (E2 a E6 OK) pero **E1 sale ROTA en 5/5 rondas**.
 Pregunta hecha a la IA con el agente Plan: «¿Podría usar notify() en lugar de
 notifyAll() en esta taquilla?».
 
-Valoración con el apartado 7.1: en esta taquilla, tal como está, `notify()`
+Respuesta de la IA (resumida): técnicamente sí, porque todos esperan la misma
+condición (`vendidas < aforo`) y cada `devolver` libera exactamente un asiento,
+así que despertar a uno basta. El despertado tiene que volver a comprobar el
+`while` porque otro comprador puede haberse llevado el asiento antes, y ninguna
+de las dos opciones atiende en orden. Aun así recomienda mantener `notifyAll()`
+«porque cumple `AGENTS.md`».
+
+Valoración con el apartado 7.1: la parte técnica es correcta, pero la
+conclusión no tiene valor: la regla de `AGENTS.md` que cita es la que escribí
+yo en el apartado a), así que solo me repite lo que le dije. No explica en qué
+caso dejaría de valer `notify()`, que es lo importante. Mi análisis:
+
+En esta taquilla, tal como está, `notify()`
 funcionaría. Todos los que esperan esperan a lo mismo (que haya un asiento
 libre) y cada `devolver` libera exactamente uno, así que despertar a uno solo
 basta, y el `while` sigue protegiendo si un `comprar` normal se adelanta y se
@@ -370,7 +389,8 @@ La IA acierta en lo que se le pide de forma concreta: encontró las condiciones
 de carrera reales y, con un prompt que decía qué cerrojo usar y qué fallos
 evitar, escribió una versión que pasa los verificadores. Lo que hace mal es
 afirmar: `TaquillaIA` se entregó como «completamente thread-safe» y rompe las
-cinco reglas en casi todas las rondas, y en la auditoría también dio por fallo
-algo que no lo era. Habría entregado código incorrecto en el primer momento, si
+cinco reglas en casi todas las rondas. En la auditoría contó dos veces el
+mismo fallo y señaló otro que no rompe el contrato, y con `notify()` justificó
+su respuesta con mi propia regla en vez de razonarla. Habría entregado código incorrecto en el primer momento, si
 me hubiera fiado de esa frase sin ejecutar el verificador, y en el Reto C con un
 `if` en lugar de `while`, que parece igual al leerlo y falla en 4 de cada 5 rondas.
