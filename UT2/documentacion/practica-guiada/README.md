@@ -11,7 +11,7 @@ Enunciado: `UT2_Practica_guiada_IA.pdf`. Código de partida: `Codigo_guiada.zip`
 | `VerificadorEspera.kt` | Prueba del Reto C | Solo la línea `fabricaEspera` |
 | `TaquillaSegura.kt` | Reto B | Sí |
 | `TaquillaEspera.kt` | Reto C | Sí |
-| `hilos/AGENTS.md` | Reglas para opencode | Solo «Reglas añadidas por el alumno» |
+| `hilos/AGENTS.md` | Reglas para el asistente de IA (Codex) | Solo «Reglas añadidas por el alumno» |
 
 Ejecución: desde IntelliJ, ▶ junto al `main` de `Verificador.kt` o de
 `VerificadorEspera.kt`. Desde la terminal:
@@ -29,17 +29,15 @@ fecha, usuario y línea `fabrica`, en [`evidencias/`](evidencias/README.md).
 
 ## Quién ha hecho qué
 
-| Parte | Hecho por |
-|-------|-----------|
-| Análisis de `TaquillaIA`, intercalados y tablas de reglas (Reto A a, b y d) | Claude (asistente de programación) |
-| Código de `TaquillaSegura` y `TaquillaEspera` | Codex en modo escritura, con los prompts preparados para opencode, en la rama de pruebas `prueba/ut2-opencode` (commits `643f175` y `09d7932`). Claude revisó el diff y lo pasó a esta rama (`fda5ebe`, `ec72d97`). La primera versión la había escrito Claude directamente (`a3cc316`, `62160d1`) |
-| Ejecuciones de los verificadores, la versión rota con `if` y la prueba con `wait(50)` | Claude, en la terminal, sobre el código de Codex |
-| Auditoría de `TaquillaIA` (Reto A c) y pregunta sobre `notify()` (Reto C e) | Codex, en modo solo lectura (respuestas reales) |
-| Revisión independiente del código y de este documento | Codex, en modo solo lectura |
-| Uso de opencode (Plan y Build), revisión del diff en IntelliJ, capturas con el usuario y reflexión final | **Pendiente del alumno**: ver [`PENDIENTES.md`](PENDIENTES.md) |
+El enunciado propone opencode como asistente. En esta práctica se ha usado
+**Codex** (Codex CLI) en su lugar, con los mismos prompts y las mismas reglas de
+`hilos/AGENTS.md`.
 
-Todavía no se ha usado opencode. Los prompts de los Retos B y C se enviaron a
-Codex en lugar de a opencode, y el código que generó es el que hay en la rama.
+| Papel | Quién | Qué ha hecho |
+|-------|-------|--------------|
+| Asistente de programación | **Codex** | Auditoría de `TaquillaIA` en modo solo lectura (Reto A c). Código de `TaquillaSegura` y `TaquillaEspera` en modo escritura, en la rama de pruebas `prueba/ut2-opencode` (commits `643f175` y `09d7932`). Respuesta sobre `notify()` (Reto C e). Revisión independiente en modo solo lectura |
+| Coordinador | **Claude Code** | Preparar los prompts, pasarle el trabajo a Codex y revisar sus respuestas y diffs antes de aceptarlos. Llevar el código revisado a esta rama (`fda5ebe`, `ec72d97`), ejecutar los verificadores (también la versión rota con `if` y la prueba con `wait(50)`) y redactar la documentación. Análisis de `TaquillaIA` (Reto A a, b y d). Una primera versión del código de los Retos B y C (`a3cc316`, `62160d1`), sustituida después por la de Codex |
+| Alumno | Diego | Capturas en IntelliJ, revisión propia de la auditoría y reflexión final (ver [`PENDIENTES.md`](PENDIENTES.md)) |
 
 ---
 
@@ -152,8 +150,8 @@ sí garantiza ver lo que escribieron los hilos.
 
 ### c) Auditoría con IA
 
-> **Pendiente:** el enunciado pide hacerla con opencode (agente Plan). Por ahora
-> se ha hecho con **Codex** en modo solo lectura y con el mismo prompt.
+Hecha con **Codex** en modo solo lectura (el equivalente al agente Plan de
+opencode). Respuesta completa en `evidencias/retoA/codex_auditoria.txt`.
 
 Prompt (el de ejemplo del enunciado):
 
@@ -200,12 +198,10 @@ hacer. Y `caja` ni siquiera es atómica.
 
 ## Reto B. Que la IA lo arregle… y demostrar que está bien
 
-### a) Prompt para opencode (agente Build)
+### a) Prompt enviado a Codex (modo escritura)
 
-> Prompt preparado para opencode. **Se envió a Codex** (modo escritura, rama de
-> pruebas), añadiendo solo «cumple AGENTS.md, no compiles ni ejecutes»; su
-> respuesta y su diff están en `evidencias/retoB/`. En opencode sigue sin
-> enviarse (ver `PENDIENTES.md`).
+> Se envió en la rama de pruebas, añadiendo solo «cumple AGENTS.md, no compiles
+> ni ejecutes». La respuesta y el diff están en `evidencias/retoB/`.
 
 > Implementa la clase TaquillaSegura en guiada/TaquillaSegura.kt cumpliendo el
 > contrato de guiada/Taquilla.kt. comprar(cliente, n) es todo o nada: si no
@@ -236,10 +232,8 @@ normal para los dueños y dos variables normales (`contador` y `caja`): todo es
 del apartado 6.1 de los apuntes. La comprobación `n > aforo - contador` y la
 venta están dentro del mismo `synchronized`, y deja escrito en un comentario el
 invariante que protege el cerrojo (`contador == asientos.size` y
-`caja == contador * PRECIO`).
-
-> **Pendiente:** revisar ese mismo diff en la ventana Commit de IntelliJ, o el
-> de opencode si se repite con él.
+`caja == contador * PRECIO`). Claude Code revisó el diff antes de aceptarlo y
+no hubo que deshacer nada.
 
 ### c) Verificador con `fabrica = ::TaquillaSegura`
 
@@ -256,8 +250,7 @@ VEREDICTO: ninguna regla rota en 30 rondas (no demuestra que sea correcta)
 Las ejecuciones 2 y 3 dieron lo mismo (todo OK) en 151,6 ms y 161,4 ms
 (evidencias `retoB/B1` a `B3`). El código de Codex pasó a la primera:
 **1 vuelta**. La versión anterior de Claude también había pasado a la primera.
-
-> **Pendiente:** captura final en IntelliJ con el usuario visible.
+La captura de IntelliJ (captura 2) va en la hoja de registro.
 
 ### d) Lista de comprobación
 
@@ -310,9 +303,8 @@ corta, así que esperar al cerrojo apenas se nota.
 
 ### b) Implementación
 
-> Prompt preparado para opencode (agente Build). **Se envió a Codex** (modo
-> escritura, rama de pruebas, con la regla ya en `AGENTS.md`); respuesta y diff
-> en `evidencias/retoC/`. En opencode sigue sin enviarse:
+> Prompt enviado a **Codex** (modo escritura, rama de pruebas, con la regla ya
+> en `AGENTS.md`); respuesta y diff en `evidencias/retoC/`:
 
 > Implementa TaquillaEspera en guiada/TaquillaEspera.kt cumpliendo
 > TaquillaConEspera de guiada/Taquilla.kt. comprar, vendidas y recaudado igual
@@ -385,8 +377,8 @@ notó, que es justo lo peligroso de estos fallos. Además, `wait()` puede
 terminar sin que nadie avise (despertar espurio), otra razón para usar `while`.
 Después se dejó otra vez con `while`.
 
-> **Pendiente:** repetir la prueba en IntelliJ y hacer las capturas (versión
-> buena y versión con `if`).
+Las capturas de IntelliJ (versión buena y versión con `if`, capturas 3 y 4) van
+en la hoja de registro.
 
 ### d) ¿En qué estado deben estar los que esperan?
 
@@ -403,8 +395,8 @@ Codex; con la versión de Claude salió lo mismo).
 
 ### e) ¿Podría usar `notify()` en lugar de `notifyAll()`?
 
-> **Pendiente:** el enunciado pide preguntarlo en opencode (agente Plan). Por
-> ahora se ha preguntado a **Codex**, en modo solo lectura.
+Preguntado a **Codex** en modo solo lectura (respuesta completa en
+`evidencias/retoC/codex_notify.txt`).
 
 Pregunta: «¿Podría usar notify() en lugar de notifyAll() en esta taquilla?».
 
@@ -440,8 +432,8 @@ de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.
 
 ## Cierre
 
-> **Pendiente del alumno:** reflexión propia de cinco líneas como máximo. Hechos
-> que se pueden usar:
+> **[REFLEXIÓN PERSONAL]** La escribe el alumno en la hoja de registro, cinco
+> líneas como máximo. Hechos que se pueden usar:
 
 - `TaquillaIA` se entregó como «completamente thread-safe» y rompe las cinco
   reglas: R2 y R3 en casi todas las rondas, R1, R4 y R5 en algunas.

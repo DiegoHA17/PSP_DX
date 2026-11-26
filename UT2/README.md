@@ -17,7 +17,7 @@ coordinación con `wait()`/`notifyAll()`.
 ```text
 UT2/
 ├── hilos/           Gradle de consola · Kotlin 2.0 · JVM 21 · Gradle 8.5
-│   ├── AGENTS.md    reglas para opencode
+│   ├── AGENTS.md    reglas para el asistente de IA (Codex)
 │   └── src/main/kotlin/es/dam/psp/ut2/guiada/
 └── documentacion/   una carpeta por práctica
 ```

@@ -1,11 +1,13 @@
 # Evidencias de la práctica guiada
 
 Salidas completas de ejecuciones reales y respuestas de la IA, guardadas tal
-cual. Las ejecuciones son de Claude en la terminal (`./gradlew run`, JDK 21,
-Windows 11), no de IntelliJ. Cada fichero empieza con la fecha, el usuario, la
-rama y las líneas `fabrica` / `fabricaEspera` que había en ese momento (excepto
-`A1`, que se guardó antes de añadir esa cabecera). Las **capturas de IntelliJ**
-con el usuario visible siguen pendientes del alumno (`../PENDIENTES.md`).
+cual. Las ejecuciones las hizo Claude Code (coordinador) en la terminal
+(`./gradlew run`, JDK 21, Windows 11), no en IntelliJ. Los prompts, las
+respuestas y los diffs son de Codex (asistente de programación). Cada fichero de
+ejecución empieza con la fecha, el usuario, la rama y las líneas `fabrica` /
+`fabricaEspera` que había en ese momento (excepto `A1`, que se guardó antes de
+añadir esa cabecera). Las capturas de IntelliJ van en la hoja de `../entrega/`,
+que no se sube al repositorio (pasos en `../PENDIENTES.md`).
 
 ## Reto A · `TaquillaIA`
 

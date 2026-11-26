@@ -2,14 +2,17 @@
 
 0490 · Programación de Servicios y Procesos · 2.º DAM · Curso 2026-27
 
-**Alumno:** [PENDIENTE] · **Fecha:** [PENDIENTE] · **Modelo de opencode:** [PENDIENTE]
+**Fecha:** 26/11/2026 · **Asistente de programación:** Codex (Codex CLI 0.170.0),
+en lugar de opencode · **Coordinador:** Claude Code
 
-> Versión en Markdown de la hoja de registro; el Word que se entrega es
-> `UT2_Hoja_de_registro.docx` (mismo contenido). Lo marcado como **[PENDIENTE]**
-> lo completa el alumno siguiendo [`PENDIENTES.md`](PENDIENTES.md). Los datos
-> rellenos son de ejecuciones reales hechas por Claude en la terminal (salidas
-> completas en [`evidencias/`](evidencias/README.md)); las respuestas de IA y el
-> código de los Retos B y C son de Codex (opencode aún no se ha usado).
+> Versión pública en Markdown de la hoja de registro. El Word y el PDF que se
+> entregan, con el nombre del alumno y las capturas, están en `entrega/`, que no
+> se sube al repositorio. Los resultados son de ejecuciones reales hechas por
+> Claude Code en la terminal (salidas completas en
+> [`evidencias/`](evidencias/README.md)). El código de los Retos B y C y las
+> respuestas de IA son de Codex. Solo quedan marcados los apartados de
+> **[REVISIÓN PERSONAL]** y **[REFLEXIÓN PERSONAL]**; los pasos de las capturas
+> están en [`PENDIENTES.md`](PENDIENTES.md).
 
 | Reto | Qué debe aparecer (enunciado) |
 |------|-------------------------------|
@@ -23,9 +26,9 @@
 
 ## Reto A
 
-**Captura de una ejecución con `TaquillaIA`:** [PENDIENTE: captura 1, con el usuario visible]
+**Captura 1** (una ejecución con `TaquillaIA` en IntelliJ, con el usuario visible): en la hoja entregada.
 
-**Reglas rotas en tres ejecuciones** (ejecuciones de Claude en la terminal; sustituir por las propias de IntelliJ):
+**Reglas rotas en tres ejecuciones** (terminal, `evidencias/retoA/A1` a `A3`; la captura 1 es otra ejecución y sus números pueden variar):
 
 | Regla | Ejec. 1 | Ejec. 2 | Ejec. 3 |
 |-------|:-------:|:-------:|:-------:|
@@ -49,18 +52,19 @@ hilos coinciden justo en la zona peligrosa.
 | Caja no atómica (44) | 1. lee 1000 · 3. escribe 1050 | 2. lee 1000 · 4. escribe 1075 | R5 |
 | Visibilidad de caja (26, 50) | 2. compra y escribe `caja = 25` | 1. lee 0 · 3. puede seguir leyendo 0 | R5 (el verificador no lo ve) |
 
-**Tabla yo / IA / falso positivo** (IA = Codex, mismo prompt del enunciado):
+**Tabla yo / IA / falso positivo** (IA = Codex en modo solo lectura, mismo prompt del enunciado; respuesta en `evidencias/retoA/codex_auditoria.txt`):
 
 | Fallo | Lo encontré yo | Lo encontró la IA | ¿Real o falso positivo? |
 |-------|:--------------:|:-----------------:|-------------------------|
-| `containsKey` + `put` | [PENDIENTE] | Sí | Real (R2) |
-| Comprobar aforo y vender por separado | [PENDIENTE] | Sí | Real: R3, junto con el asiento repetido (Codex lo explica bien) |
-| Compra parcial (`addAndGet(n)`) | [PENDIENTE] | Sí | Real (R1, R4, R5) |
-| `caja +=` | [PENDIENTE] | Sí | Real (R5) |
-| Lecturas separadas de `vendidas()` y `recaudado()` | [PENDIENTE] | Sí | Falso positivo: el contrato no pide leerlas a la vez |
-| Visibilidad de `caja` | [PENDIENTE] | Sí | Real, el verificador no lo detecta |
+| `containsKey` + `put` | [REVISIÓN PERSONAL] | Sí | Real (R2) |
+| Comprobar aforo y vender por separado | [REVISIÓN PERSONAL] | Sí | Real: R3, junto con el asiento repetido (Codex lo explica bien) |
+| Compra parcial (`addAndGet(n)`) | [REVISIÓN PERSONAL] | Sí | Real (R1, R4, R5) |
+| `caja +=` | [REVISIÓN PERSONAL] | Sí | Real (R5) |
+| Lecturas separadas de `vendidas()` y `recaudado()` | [REVISIÓN PERSONAL] | Sí | Falso positivo: el contrato no pide leerlas a la vez |
+| Visibilidad de `caja` | [REVISIÓN PERSONAL] | Sí | Real, el verificador no lo detecta |
 
-[PENDIENTE: repetir la auditoría con opencode en modo Plan y completar o sustituir la columna «IA»]
+**[REVISIÓN PERSONAL]** Columna «Lo encontré yo»: marca Sí/No según lo que viste
+tú al leer `TaquillaIA.kt` antes de mirar la respuesta de Codex.
 
 **Apartado d:** `AtomicInteger` y `ConcurrentHashMap` solo hacen atómica cada
 operación suelta, pero `comprar` encadena varias (comprobar, buscar, ocupar,
@@ -75,17 +79,33 @@ ventas al llegar a 200. R4 es consecuencia de la compra parcial. R5 tiene causa 
 
 ## Reto B
 
-**Prompt:** el de `PENDIENTES.md`, Reto B a), enviado a **Codex** (modo
-escritura, rama de pruebas) con «cumple AGENTS.md, no compiles ni ejecutes».
-[PENDIENTE: si se repite en opencode Build, poner el prompt que se envíe de verdad]
+**Prompt** (enviado a **Codex** en modo escritura, en la rama de pruebas, con
+«cumple AGENTS.md, no compiles ni ejecutes» delante):
 
-**Ficheros que tocó la IA:** solo `TaquillaSegura.kt`; no hubo que deshacer nada
-(`evidencias/retoB/codex_TaquillaSegura.patch`).
+> Implementa la clase TaquillaSegura en guiada/TaquillaSegura.kt cumpliendo el
+> contrato de guiada/Taquilla.kt. comprar(cliente, n) es todo o nada: si no
+> quedan n asientos libres no vende ninguno y devuelve una lista vacía; si
+> quedan, los vende todos a ese cliente, suma n a vendidas y n × PRECIO a la
+> caja. En TaquillaIA encontré estos fallos y no deben repetirse: (1) containsKey
+> y put sobre el mapa no son atómicos y dos hilos se llevan el mismo asiento;
+> (2) se comprueba el aforo con contador.get() y se vende después, así que dos
+> hilos pasan la comprobación y uno recibe menos asientos de los pedidos;
+> (3) contador.addAndGet(n) suma lo pedido aunque se entreguen menos; (4) caja
+> += n * PRECIO no es atómico y se pierden ventas; (5) recaudado() lee caja sin
+> sincronizar. Usa un solo cerrojo con synchronized sobre un objeto privado que
+> proteja los tres datos (dueño de cada asiento, vendidas y caja). La
+> comprobación de que quedan n libres y la venta tienen que estar dentro del
+> mismo bloque synchronized. vendidas() y recaudado() también deben leer con el
+> cerrojo. No uses AtomicInteger ni ConcurrentHashMap dentro del synchronized.
+> Modifica solo TaquillaSegura.kt y explica qué invariante protege el cerrojo.
+
+**Ficheros que tocó la IA:** solo `TaquillaSegura.kt`. Claude Code revisó el diff
+antes de aceptarlo y no hubo que deshacer nada (`evidencias/retoB/codex_TaquillaSegura.patch`).
 
 **Número de vueltas:** 1 (el código de Codex pasó a la primera; la versión anterior
 de Claude, también)
 
-**Captura final:** [PENDIENTE: captura 2, `TaquillaSegura` con R1-R5 OK]
+**Captura 2** (`TaquillaSegura` con R1-R5 OK en IntelliJ): en la hoja entregada.
 
 Resultado real (código de Codex, tres ejecuciones, `evidencias/retoB/B1` a `B3`):
 R1-R5 OK en las tres.
@@ -110,8 +130,7 @@ después de `join()`.
 | `TaquillaIA` | 185,5 ms | 161,2 ms | 163,9 ms | 170,2 ms |
 | `TaquillaSegura` | 171,0 ms | 151,6 ms | 161,4 ms | 161,3 ms |
 
-(Una tanda seguida, `evidencias/retoB/tiempos/` y `B1` a `B3`.)
-[PENDIENTE: sustituir por los tiempos de IntelliJ si se repiten las mediciones]
+(Una tanda seguida en la terminal, `evidencias/retoB/tiempos/` y `B1` a `B3`.)
 
 La corrección no ha salido más cara; con tres ejecuciones y tanta variación no
 se puede concluir más.
@@ -129,9 +148,8 @@ otra vez: el hilo debe quedar en estado WAITING. Quien cambie el estado
 (devolver un asiento) avisa con `notifyAll()`. Si interrumpen al hilo mientras
 espera, captura `InterruptedException` y devuelve `null`.
 
-**Captura de `VerificadorEspera`:** [PENDIENTE: captura 3, E1-E6 OK]
-
-**Versión rota a propósito (`while` → `if`):** [PENDIENTE: captura 4]
+**Captura 3** (`VerificadorEspera` con E1-E6 OK) y **captura 4** (versión rota a
+propósito, `while` → `if`): en la hoja entregada.
 
 Resultado real con el código de Codex (`TaquillaEspera` OK: E1-E6 en las tres
 ejecuciones, `evidencias/retoC/C1` a `C3`). Con `if`: E3 rota en 4/5 rondas
@@ -147,7 +165,7 @@ entrada, así que se sirve a menos de 6.
 devuelto nada: es espera activa. Probado con `wait(50)`: E2-E6 OK pero E1 rota
 en 5/5 rondas (`evidencias/retoC/C_wait50`).
 
-**Apartado e:** [PENDIENTE: respuesta de opencode en modo Plan]
+**Apartado e** (pregunta a Codex en modo solo lectura, `evidencias/retoC/codex_notify.txt`).
 
 Respuesta de Codex: sí podría, porque todos esperan lo mismo y cada devolución
 libera un asiento, pero recomienda `notifyAll()` «porque cumple `AGENTS.md`».
@@ -160,7 +178,9 @@ asientos con un solo aviso.
 
 ## Cierre
 
-[PENDIENTE: reflexión propia, cinco líneas como máximo]
+**[REFLEXIÓN PERSONAL]** Cinco líneas como máximo: qué ha hecho bien la IA y qué
+no, y en qué momento habrías entregado código incorrecto sin verificarlo. Se
+escribe en la hoja entregada.
 
 ---
 
