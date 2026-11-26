@@ -23,7 +23,22 @@ cd UT2/hilos
 ```
 
 Equipo de las mediciones: AMD Ryzen 7 5800H (8 núcleos / 16 hilos), Windows 11
-Home, JDK 21.
+Home, JDK 21. Las salidas de este documento son de ejecuciones reales desde la
+terminal (`java` sobre las clases compiladas por Gradle), no desde IntelliJ.
+
+## Quién ha hecho qué
+
+| Parte | Hecho por |
+|-------|-----------|
+| Análisis de `TaquillaIA`, intercalados y tablas de reglas (Reto A a, b y d) | Claude (asistente de programación) |
+| Código de `TaquillaSegura` y `TaquillaEspera` | Claude, escrito directamente (no con el agente Build de opencode) |
+| Ejecuciones de los verificadores, la versión rota con `if` y la prueba con `wait(50)` | Claude, en la terminal |
+| Auditoría de `TaquillaIA` (Reto A c) y pregunta sobre `notify()` (Reto C e) | Codex, en modo solo lectura (respuestas reales) |
+| Revisión independiente del código y de este documento | Codex, en modo solo lectura |
+| Uso de opencode (Plan y Build), revisión del diff en IntelliJ, capturas con el usuario y reflexión final | **Pendiente del alumno**: ver [`PENDIENTES.md`](PENDIENTES.md) |
+
+Todavía no se ha usado opencode. Los prompts para opencode que aparecen abajo
+están preparados, pero no se han enviado.
 
 ---
 
@@ -56,11 +71,11 @@ VEREDICTO: INCORRECTA
 Se rompen las cinco reglas, pero no siempre en las mismas rondas. Una condición
 de carrera solo aparece cuando dos hilos se intercalan justo dentro de la zona
 peligrosa, y ese intercalado lo decide el planificador del sistema operativo
-(cuántos núcleos están libres, cuándo se expulsa a cada hilo, la carga del
-equipo…). Cada ejecución es un reparto distinto, así que cambian los números.
-R2 y R3 salen en todas las rondas porque su ventana es muy grande (todos los
-hilos recorren los mismos asientos desde el 0); R1 y R4 solo aparecen cuando
-quedan los últimos asientos, que es un momento muy corto de cada ronda.
+(núcleos libres, cuándo se expulsa a cada hilo, carga del equipo…). Cada
+ejecución es un reparto distinto, así que cambian los números. R2 y R3 salen en
+todas las rondas porque todos los hilos recorren los mismos asientos desde el 0
+a la vez; R1 y R4 solo aparecen cuando quedan los últimos asientos, que es un
+momento muy corto de cada ronda.
 
 ### b) Secciones críticas sin proteger
 
@@ -69,103 +84,124 @@ pero `comprar` las encadena y entre una y otra puede entrar otro hilo.
 
 **Fallo 1 · líneas 36-37: buscar y ocupar el asiento no es atómico** (`containsKey` + `put`)
 
-| Hilo 1 | Hilo 2 |
-|--------|--------|
-| `asientos.containsKey(5)` → `false` | |
-| | `asientos.containsKey(5)` → `false` |
-| `asientos[5] = "cliente-1"`, añade 5 | |
-| | `asientos[5] = "cliente-2"` (machaca al dueño), añade 5 |
-| devuelve `[5, …]` | devuelve `[5, …]` |
+| Paso | Hilo 1 | Hilo 2 |
+|:----:|--------|--------|
+| 1 | `asientos.containsKey(5)` → `false` | |
+| 2 | | `asientos.containsKey(5)` → `false` |
+| 3 | `asientos[5] = "cliente-1"`, añade 5 | |
+| 4 | | `asientos[5] = "cliente-2"` (machaca al dueño), añade 5 |
+| 5 | devuelve `[5, …]` | devuelve `[5, …]` |
 
-El asiento 5 se entrega dos veces → **R2**. Como el contador suma las dos
-ventas, se entregan más de 200 asientos → **R3**.
+El asiento 5 se entrega dos veces → **R2**. Esto por sí solo no es sobreventa:
+el contador cuenta también los repetidos, así que llegaría a 200 y la
+comprobación de la línea 30 frenaría las ventas. Para entregar más de 200 hace
+falta que, además, varios hilos pasen esa comprobación a la vez (fallo 2). Con
+16 hilos comprando a la vez eso pasa constantemente, y por eso R3 sale en todas
+las rondas → **R3** necesita el fallo 1 y el fallo 2 juntos.
 
-**Fallo 2 · líneas 30 y 34-43: comprobar el aforo y vender no es atómico** (comprobar y actuar)
+**Fallo 2 · líneas 30 y 34-43: comprobar el aforo y vender no es atómico, y se suma lo pedido**
 
 Situación: `contador = 197` y quedan libres el 197, el 198 y el 199.
 
-| Hilo 1 (`n = 2`) | Hilo 2 (`n = 2`) |
-|------------------|------------------|
-| `contador.get() + 2 = 199 ≤ 200` → sigue | |
-| | `contador.get() + 2 = 199 ≤ 200` → sigue |
-| ocupa 197 y 198 | |
-| | solo encuentra el 199 → `asignados = [199]` |
-| `contador.addAndGet(2)` → 199 | |
-| | `contador.addAndGet(2)` → 201 |
-| devuelve `[197, 198]` | devuelve `[199]` |
+| Paso | Hilo 1 (`n = 2`) | Hilo 2 (`n = 2`) |
+|:----:|------------------|------------------|
+| 1 | `contador.get() + 2 = 199 ≤ 200` → sigue | |
+| 2 | | `contador.get() + 2 = 199 ≤ 200` → sigue |
+| 3 | ocupa 197 y 198 | |
+| 4 | | solo encuentra el 199 → `asignados = [199]` |
+| 5 | `contador.addAndGet(2)` → 199 | |
+| 6 | | `contador.addAndGet(2)` → 201 |
+| 7 | devuelve `[197, 198]` | devuelve `[199]` |
 
-El Hilo 2 pidió 2 y recibe 1 → **R1**. Además `addAndGet(n)` suma lo pedido y
-no lo entregado: `vendidas() = 201` con 200 asientos entregados → **R4**, y la
-caja cobra 2 entradas por 1 asiento → **R5**. Si el Hilo 2 no encuentra
+El Hilo 2 pidió 2 y recibe 1 → **R1**. Además `addAndGet(n)` (línea 43) suma lo
+pedido y no lo entregado: `vendidas() = 201` con 200 asientos entregados → **R4**,
+y la caja cobra 2 entradas por 1 asiento → **R5**. Si el Hilo 2 no encuentra
 ninguno devuelve `[]` (no rompe R1) pero suma igual 2 al contador y 50 € a la caja.
 
 **Fallo 3 · línea 44: `caja += n * PRECIO` sobre un `Long` normal**
 
 Es leer, sumar y escribir en tres pasos:
 
-| Hilo 1 (`n = 2`) | Hilo 2 (`n = 3`) |
-|------------------|------------------|
-| lee `caja` = 1000 | |
-| | lee `caja` = 1000 |
-| escribe 1000 + 50 = 1050 | |
-| | escribe 1000 + 75 = 1075 |
+| Paso | Hilo 1 (`n = 2`) | Hilo 2 (`n = 3`) |
+|:----:|------------------|------------------|
+| 1 | lee `caja` = 1000 | |
+| 2 | | lee `caja` = 1000 |
+| 3 | escribe 1000 + 50 = 1050 | |
+| 4 | | escribe 1000 + 75 = 1075 |
 
-Se pierde la venta del Hilo 1: 5 entradas y solo 75 € → **R5**. Es lo que pasa en
-la ejecución 2 (221 entregados, faltan 100 €).
+Se pierde la venta del Hilo 1: 5 entradas y solo 75 € → **R5**. En las
+ejecuciones 2 y 3 falta dinero en la caja (100 € y 50 €), que solo puede pasar
+por pérdidas como esta: la venta parcial del fallo 2 cobra de más, no de menos.
 
 **Fallo 4 · líneas 26 y 50: visibilidad de `caja`**
 
-`caja` no es `@Volatile` ni se lee con cerrojo, así que `recaudado()` llamado
-desde otro hilo puede ver un valor antiguo. El verificador no lo detecta porque
-lee la caja después de `join()`, que sí garantiza ver lo escrito por los hilos.
+`caja` no es `@Volatile` ni se lee con cerrojo, así que un hilo puede no ver lo
+que ha escrito otro:
 
-### c) Auditoría con la IA (agente Plan)
+| Paso | Hilo 1 | Hilo 2 |
+|:----:|--------|--------|
+| 1 | | `recaudado()` → lee `caja` = 0 |
+| 2 | compra 1 entrada: `caja = 25` | |
+| 3 | | `recaudado()` → puede seguir leyendo 0 (valor guardado en caché) |
 
-Prompt usado (el de ejemplo del enunciado):
+El verificador no lo detecta porque lee la caja después de `join()`, y `join()`
+sí garantiza ver lo que escribieron los hilos.
+
+### c) Auditoría con IA
+
+> **Pendiente:** el enunciado pide hacerla con opencode (agente Plan). Por ahora
+> se ha hecho con **Codex** en modo solo lectura y con el mismo prompt.
+
+Prompt (el de ejemplo del enunciado):
 
 > Analiza guiada/TaquillaIA.kt frente al contrato de guiada/Taquilla.kt. Enumera
 > cada condición de carrera: líneas implicadas, intercalado de dos hilos que la
 > produce y qué regla del contrato rompe. No modifiques ningún fichero.
 
-La IA devolvió seis carreras. La primera vez se quedó colgada a mitad de la
-respuesta y tuve que repetir la pregunta pidiéndole una respuesta más corta.
+Codex devolvió seis carreras. La primera vez se quedó colgado a mitad de la
+respuesta y hubo que repetir la pregunta pidiendo una respuesta más corta.
 
-| Fallo | Lo encontré yo | Lo encontró la IA | ¿Real? |
-|-------|:--------------:|:-----------------:|--------|
-| `containsKey` + `put` (36-37) | Sí (fallo 1) | Sí (su n.º 2) | Real: R2. Dice que también rompe R4 porque el mapa guarda un dueño y el contador suma dos. Según el contrato es cierto, pero el verificador cuenta los asientos entregados (dos), así que R4 no sale por esto |
-| Comprobar el aforo con `contador.get()` y vender después (30, 43) | Sí (fallo 2) | Sí (su n.º 1) | **Mal atribuido.** Dice que por sí solo provoca sobreventa (R3) con aforo 1, pero su intercalado necesita que los dos hilos vean libre el asiento 0, que es el fallo de `containsKey` + `put`. Como los asientos solo van de 0 a aforo-1, sin repetidos no hay R3. Es el mismo fallo contado dos veces |
-| Compra parcial: `addAndGet(n)` y cobro de lo pedido (30-45) | Sí (fallos 2 y 4) | Sí (su n.º 3) | Real: R1, R4 y R5. Su intercalado con aforo 3 es correcto |
+| Fallo | Análisis del apartado b | Lo encontró Codex | ¿Real? |
+|-------|:-----------------------:|:-----------------:|--------|
+| `containsKey` + `put` (36-37) | Sí (fallo 1) | Sí (su n.º 2) | Real: R2. Dice que también rompe R4 porque el mapa guarda un dueño y el contador suma dos. Según el contrato tiene sentido, pero el verificador cuenta los asientos entregados (dos), así que R4 no sale por esto |
+| Comprobar el aforo con `contador.get()` y vender después (30, 43) | Sí (fallo 2) | Sí (su n.º 1) | Real: R3. Su intercalado (aforo 1, los dos pasan la comprobación y los dos ven libre el asiento 0) junta este fallo con el 1, y lo dice («además de R2 por la carrera siguiente»). Es correcto: R3 necesita los dos |
+| Compra parcial: `addAndGet(n)` y cobro de lo pedido (30-45) | Sí (fallo 2) | Sí (su n.º 3) | Real: R1, R4 y R5. Su intercalado es correcto |
 | `caja +=` sin sincronizar (44) | Sí (fallo 3) | Sí (su n.º 4) | Real: R5 |
-| `vendidas()` y `recaudado()` se leen por separado (43-44, 48, 50) | No | Sí (su n.º 5) | **Falso positivo para el contrato.** Es cierto que entre las dos líneas el contador ya ha subido y la caja todavía no, pero el contrato no pide leer las dos cosas a la vez, y R5 se comprueba al final. En `TaquillaSegura` también pueden leerse en momentos distintos, porque son dos llamadas con el cerrojo |
+| `vendidas()` y `recaudado()` se leen por separado (43-44, 48, 50) | No | Sí (su n.º 5) | **Falso positivo para el contrato.** Entre las dos líneas el contador ya ha subido y la caja todavía no, pero el contrato no pide leer las dos cosas a la vez y R5 se comprueba al final. En `TaquillaSegura` también son dos llamadas separadas |
 | Visibilidad de `caja` en `recaudado()` (26, 50) | Sí (fallo 4) | Sí (su n.º 6) | Real, pero el verificador no lo ve (lee después de `join()`) |
 
-No se le escapó ninguno de los míos. Lo que hizo peor fue separar causas y
-consecuencias: aunque dijo que lo iba a hacer, dos de sus seis puntos son
-consecuencias de otro fallo o no rompen ninguna regla.
+Codex no se dejó ninguno de los fallos del apartado b. Su único punto flojo es
+el n.º 5, que no rompe ninguna regla del contrato. En la primera versión de esta
+tabla se marcó su n.º 1 como «mal atribuido», y era un error nuestro: en la
+revisión final el propio Codex hizo ver que R3 necesita también la carrera de la
+comprobación del aforo. Es un buen ejemplo de por qué hay que comprobar también
+las correcciones que se le hacen a la IA.
 
 ### d) ¿Por qué «es thread-safe porque usa AtomicInteger y ConcurrentHashMap» es falso?
 
 Esas clases solo hacen atómica **cada operación suelta**. `comprar` es una
 secuencia (comprobar el aforo, buscar asientos, ocuparlos, sumar contador y
-caja) que debe verse como un único paso, y además mantiene un invariante entre
-tres datos (asientos, contador y caja) que ninguna de las dos clases conoce. Y
-`caja` ni siquiera es atómica.
-
-Relación entre reglas rotas y fallos:
+caja) que tendría que hacerse de una vez, y además tiene que mantener cuadrados
+tres datos (asientos, contador y caja), cosa que ninguna de esas clases sabe
+hacer. Y `caja` ni siquiera es atómica.
 
 | Regla | Fallo que la causa | ¿Consecuencia de otro fallo? |
 |-------|--------------------|------------------------------|
 | R1 | Fallo 2 | — |
 | R2 | Fallo 1 | — |
-| R3 | Fallo 1 | **Sí.** Los números de asiento solo van de 0 a 199, así que la única forma de entregar más de 200 es repetir asientos: R3 se rompe porque se rompe R2 (por eso las dos salen 30/30) |
-| R4 | Fallo 2 (+4) | **Sí**, del fallo 2: se suma `n` aunque se hayan entregado menos |
-| R5 | Fallo 3 y fallo 2 | En parte: la venta parcial cobra de más; la pérdida de dinero es del fallo 3. En la ejecución 1 se rompen R2 y R3 en la ronda 1 con la caja bien, así que R5 tiene causa propia |
+| R3 | Fallos 1 y 2 juntos | **Sí.** Los asientos solo van de 0 a 199, así que la única forma de entregar más de 200 es repetir asientos: si R3 se rompe, R2 también. Además, hace falta que varios hilos pasen a la vez la comprobación del aforo, porque si no el contador frenaría las ventas al llegar a 200 |
+| R4 | Fallo 2 | **Sí**: es efecto de la compra parcial (se suma `n` aunque se entreguen menos) |
+| R5 | Fallo 3 y fallo 2 | En parte: la venta parcial cobra de más; la pérdida de dinero es del fallo 3. En la ejecución 1 la ronda 1 rompe R2 y R3 con la caja bien, así que R5 no depende de R2 |
 
 ---
 
 ## Reto B. Que la IA lo arregle… y demostrar que está bien
 
-### a) Prompt (agente Build)
+### a) Prompt para opencode (agente Build)
+
+> **Pendiente de enviar.** `TaquillaSegura` la escribió Claude directamente. Este
+> es el prompt preparado para el Reto B; hay que enviarlo en opencode y anotar
+> qué pasa (ver `PENDIENTES.md`).
 
 > Implementa la clase TaquillaSegura en guiada/TaquillaSegura.kt cumpliendo el
 > contrato de guiada/Taquilla.kt. comprar(cliente, n) es todo o nada: si no
@@ -187,16 +223,17 @@ Relación entre reglas rotas y fallos:
 > uses AtomicInteger ni ConcurrentHashMap dentro del synchronized. Modifica solo
 > TaquillaSegura.kt y explica qué invariante protege el cerrojo.
 
-### b) Revisión del diff antes de aceptar
+### b) Qué cambia el código
 
-En la ventana Commit solo aparece `TaquillaSegura.kt`: no toca ningún fichero
-prohibido. Usa `synchronized` sobre un `Any()` privado, un `arrayOfNulls<String>`
-para los dueños y dos variables normales: todo está en el apartado 6.1 de los
-apuntes. Nada que deshacer.
+Respecto al código de partida, en la rama solo cambian `TaquillaSegura.kt` y la
+línea `fabrica` de `Verificador.kt` (comprobado con `diff` contra el zip). Usa
+`synchronized` sobre un `Any()` privado, un `arrayOfNulls<String>` para los
+dueños y dos variables normales: todo es del apartado 6.1 de los apuntes.
+
+> **Pendiente:** revisar el diff de lo que genere opencode en la ventana Commit
+> de IntelliJ (ficheros tocados y herramientas usadas).
 
 ### c) Verificador con `fabrica = ::TaquillaSegura`
-
-Vueltas necesarias: **1** (la primera versión pasó las tres ejecuciones).
 
 ```text
 Taquilla: TaquillaSegura · 30 rondas · 16 hilos · aforo 200 · tiempo 163.070400ms
@@ -208,29 +245,30 @@ Taquilla: TaquillaSegura · 30 rondas · 16 hilos · aforo 200 · tiempo 163.070
 VEREDICTO: ninguna regla rota en 30 rondas (no demuestra que sea correcta)
 ```
 
-Las ejecuciones 2 y 3 dieron lo mismo (todo OK) en 155,6 ms y 193,6 ms.
+Las ejecuciones 2 y 3 dieron lo mismo (todo OK) en 155,6 ms y 193,6 ms. La
+versión de Claude pasó a la primera.
+
+> **Pendiente:** número de vueltas con opencode y captura final.
 
 ### d) Lista de comprobación
 
 | Pregunta | Respuesta para `TaquillaSegura` |
 |----------|---------------------------------|
-| ¿Sección crítica y cerrojo? ¿Todo el estado con el mismo cerrojo? | La sección crítica es todo el cuerpo de `comprar` desde que mira cuántos quedan hasta que actualiza la caja. La protege `synchronized(cerrojo)`, y `duenos`, `vendidas` y `caja` solo se tocan dentro de ese mismo cerrojo. Invariante: `vendidas` = asientos con dueño y `caja` = `vendidas` × 25 |
-| ¿Queda algún «comprobar y actuar» fuera del cerrojo? | No. El `if (aforo - vendidas < n)` y la búsqueda con `if (duenos[asiento] == null)` están dentro del bloque. Lo único fuera es `if (n <= 0)`, que no mira estado compartido |
-| ¿Los métodos de lectura usan cerrojo, `@Volatile` o atómica? | Sí, `vendidas()` y `recaudado()` hacen `synchronized(cerrojo)`. Sin eso, otro hilo podría ver un valor antiguo (visibilidad) o, con `Long` en algunas JVM, un valor a medio escribir |
-| ¿Mezcla herramientas sin necesidad? | No: dentro del `synchronized` solo hay un array y variables normales. Meter `AtomicInteger` ahí no aportaría nada |
-| ¿Más de un cerrojo? ¿Mismo orden? | Un único cerrojo, así que no puede haber interbloqueo por orden |
+| ¿Sección crítica y cerrojo? ¿Todo el estado con el mismo cerrojo? | La sección crítica es `comprar` desde que mira cuántos quedan hasta que actualiza la caja. La protege `synchronized(cerrojo)`, y `duenos`, `vendidas` y `caja` solo se tocan dentro de ese cerrojo. Así siempre se cumple: `vendidas` = asientos con dueño y `caja` = `vendidas` × 25 |
+| ¿Queda algún «comprobar y actuar» fuera del cerrojo? | No. El `if (aforo - vendidas < n)` y el `if (duenos[asiento] == null)` están dentro. Lo único fuera es `if (n <= 0)`, que no mira datos compartidos |
+| ¿Los métodos de lectura usan cerrojo, `@Volatile` o atómica? | Sí, `vendidas()` y `recaudado()` usan `synchronized(cerrojo)`. Sin eso, otro hilo podría ver un valor antiguo (problema de visibilidad) |
+| ¿Mezcla herramientas sin necesidad? | No: dentro del `synchronized` solo hay un array y variables normales |
+| ¿Más de un cerrojo? ¿Mismo orden? | Un único cerrojo, así que no hay riesgo de interbloqueo por orden |
 
 ### e) ¿Por qué «no demuestra que sea correcta»?
 
-Porque una prueba solo enseña los intercalados que han salido en esas 30
-rondas; que no aparezca un fallo no quiere decir que no pueda aparecer en otra
-máquina o con otra carga. Además el verificador no mira todo. Ejemplo que la
-lista detecta y el verificador no: si `vendidas()` y `recaudado()` leyeran sin
-cerrojo (`= caja` a secas), el verificador seguiría saliendo OK, porque solo los
-llama desde `main` después de `join()`, y `join()` ya garantiza ver lo escrito
-por los hilos. El problema de visibilidad solo aparece si se consulta la caja
-mientras se está vendiendo, y eso el verificador no lo hace. Tampoco detectaría,
-por ejemplo, dos cerrojos tomados en distinto orden si en la prueba no coinciden.
+Una prueba solo enseña los intercalados que han salido en esas 30 rondas; que
+no aparezca un fallo no quiere decir que no pueda aparecer en otra máquina o con
+otra carga. Además, el verificador no lo mira todo. Algo que la lista detecta y
+el verificador no: si `vendidas()` y `recaudado()` leyeran sin cerrojo, el
+verificador seguiría saliendo OK, porque solo las llama desde `main` después de
+`join()`. El fallo de visibilidad solo aparece si se consulta la caja mientras
+se vende, y el verificador no lo hace.
 
 Tiempos (mismo equipo, tres ejecuciones de 30 rondas):
 
@@ -239,13 +277,11 @@ Tiempos (mismo equipo, tres ejecuciones de 30 rondas):
 | `TaquillaIA` | 227,3 ms | 244,4 ms | 205,9 ms | 225,9 ms |
 | `TaquillaSegura` | 163,1 ms | 155,6 ms | 193,6 ms | 170,8 ms |
 
-La corrección no ha costado nada apreciable; de hecho la segura ha salido algo
-más rápida. El tiempo lo domina crear y arrancar 16 hilos × 30 rondas, y cada
-compra dentro del cerrojo es muy corta. `TaquillaIA` no gana nada por no
-bloquear: sus hilos compiten igual sobre el `ConcurrentHashMap` y además siguen
-vendiendo asientos repetidos que ya no existen. Con tan pocos datos y tan poco
-tiempo la diferencia está dentro del ruido; lo importante es que la versión
-correcta no es más lenta de forma apreciable.
+La corrección no ha salido más cara; en estas mediciones la segura ha tardado
+incluso algo menos. No se puede sacar mucho más: son solo tres ejecuciones, los
+tiempos varían bastante entre ellas y las dos clases no hacen el mismo trabajo
+(la de la IA reparte asientos repetidos). Cada compra dentro del cerrojo es muy
+corta, así que esperar al cerrojo apenas se nota.
 
 ---
 
@@ -262,9 +298,10 @@ correcta no es más lenta de forma apreciable.
 > `notifyAll()`. Si interrumpen al hilo mientras espera, captura
 > `InterruptedException` y devuelve `null`.
 
-### b) Implementación y revisión del diff
+### b) Implementación
 
-Prompt (agente Build):
+> **Pendiente de enviar.** `TaquillaEspera` la escribió Claude directamente. Prompt
+> preparado para opencode (agente Build):
 
 > Implementa TaquillaEspera en guiada/TaquillaEspera.kt cumpliendo
 > TaquillaConEspera de guiada/Taquilla.kt. comprar, vendidas y recaudado igual
@@ -275,17 +312,17 @@ Prompt (agente Build):
 > uno. Sigue las reglas de AGENTS.md sobre cómo esperar. Modifica solo
 > TaquillaEspera.kt.
 
-Diff revisado: solo cambia `TaquillaEspera.kt`. El cerrojo pasa a ser un
-`Object()` (con `Any()` Kotlin no deja llamar a `wait()`/`notifyAll()`), la venta
-de un asiento se saca a una función privada `vender` que solo se llama con el
-cerrojo cogido, `devolver` comprueba el rango y el dueño antes de cambiar nada,
-y `esperarEntrada` hace `while (vendidas == aforo) cerrojo.wait()`. Al capturar
-`InterruptedException` vuelve a marcar el hilo como interrumpido antes de
-devolver `null`, que es lo recomendable para no perder la interrupción.
+Cómo es el código: el cerrojo es un `Object()` (con `Any()` Kotlin no deja
+llamar a `wait()`/`notifyAll()`), la venta de un asiento está en una función
+privada `vender` que solo se llama con el cerrojo cogido, `devolver` comprueba
+el rango y el dueño antes de cambiar nada, y `esperarEntrada` hace
+`while (vendidas == aforo) cerrojo.wait()`. Al capturar `InterruptedException`
+vuelve a marcar el hilo como interrumpido antes de devolver `null`, para no
+perder la interrupción.
 
 ### c) `VerificadorEspera`
 
-Versión final (las tres ejecuciones iguales):
+Versión final (tres ejecuciones, todas iguales):
 
 ```text
 Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
@@ -298,8 +335,9 @@ Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
 VEREDICTO: ninguna regla rota (no demuestra que sea correcta)
 ```
 
-Como salió OK a la primera, lo rompí a propósito cambiando el `while` por un
-`if` (`if (vendidas == aforo) cerrojo.wait()`):
+Como salió OK a la primera, se rompió a propósito cambiando el `while` por un
+`if` (`if (vendidas == aforo) cerrojo.wait()`). Resultado, igual en las tres
+ejecuciones:
 
 ```text
 Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
@@ -312,8 +350,7 @@ Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
 VEREDICTO: INCORRECTA
 ```
 
-Salió igual (E3 rota en 4/5) en las tres ejecuciones, y además por la consola
-salen muchas excepciones en los hilos que esperan:
+Además, por la consola salen muchas excepciones en los hilos que esperan:
 
 ```text
 Exception in thread "espera-5" java.lang.ArrayIndexOutOfBoundsException: Index -1 out of bounds for length 20
@@ -321,62 +358,62 @@ Exception in thread "espera-5" java.lang.ArrayIndexOutOfBoundsException: Index -
 
 Por qué: cada `devolver` hace `notifyAll()` y despierta a los 10 que esperan,
 pero solo hay un asiento libre. El primero que coge el cerrojo se lo lleva. Los
-demás, con `if`, no vuelven a mirar la condición: siguen como si hubiera sitio,
+demás, con `if`, no vuelven a mirar la condición y siguen como si hubiera sitio:
 `indexOfFirst { it == null }` devuelve -1 y `duenos[-1]` lanza la excepción, que
-mata al hilo. Esos hilos mueren sin entrada aunque luego se devuelvan más
+mata al hilo. Esos hilos se quedan sin entrada aunque luego se devuelvan más
 asientos, así que se sirve a menos de 6 clientes → **E3**. E5 sale OK porque
-los hilos muertos ya no están vivos y E6 porque la excepción salta antes de
+los hilos muertos ya no están vivos, y E6 porque la excepción salta antes de
 tocar las cuentas. En una de las cinco rondas el reparto coincidió y no se
-notó, que es justo lo peligroso de estos fallos. Después lo dejé otra vez con
-`while`.
+notó, que es justo lo peligroso de estos fallos. Además, `wait()` puede
+terminar sin que nadie avise (despertar espurio), otra razón para usar `while`.
+Después se dejó otra vez con `while`.
+
+> **Pendiente:** repetir la prueba en IntelliJ y hacer las capturas (versión
+> buena y versión con `if`).
 
 ### d) ¿En qué estado deben estar los que esperan?
 
 En **WAITING**: dormidos en `wait()` sin tiempo, sin gastar CPU, hasta que
-alguien haga `notifyAll()` (o los interrumpan). Si un hilo aparece en
+alguien haga `notifyAll()` o los interrumpan. Si un hilo aparece en
 **TIMED_WAITING** es que espera con tiempo (`wait(ms)` o `Thread.sleep(ms)` en
 un bucle): se despierta cada poco a mirar si hay sitio aunque nadie haya
 devuelto nada. Es una espera activa disfrazada: gasta CPU y cerrojo para nada y
-además tarda en enterarse (hasta que acaba su tiempo). Puede vender bien, pero
-no espera como debe, y E1 lo comprueba mirando el estado de los hilos a los
-300 ms. Lo probé cambiando `cerrojo.wait()` por `cerrojo.wait(50)`: vende todo
-bien (E2 a E6 OK) pero **E1 sale ROTA en 5/5 rondas**.
+tarda en enterarse. Puede vender bien, pero no espera como debe, y E1 lo
+comprueba mirando el estado de los hilos a los 300 ms. Se probó cambiando
+`cerrojo.wait()` por `cerrojo.wait(50)`: vende todo bien (E2 a E6 OK) pero
+**E1 sale ROTA en 5/5 rondas**.
 
 ### e) ¿Podría usar `notify()` en lugar de `notifyAll()`?
 
-Pregunta hecha a la IA con el agente Plan: «¿Podría usar notify() en lugar de
-notifyAll() en esta taquilla?».
+> **Pendiente:** el enunciado pide preguntarlo en opencode (agente Plan). Por
+> ahora se ha preguntado a **Codex**, en modo solo lectura.
 
-Respuesta de la IA (resumida): técnicamente sí, porque todos esperan la misma
+Pregunta: «¿Podría usar notify() en lugar de notifyAll() en esta taquilla?».
+
+Respuesta de Codex (resumida): técnicamente sí, porque todos esperan la misma
 condición (`vendidas < aforo`) y cada `devolver` libera exactamente un asiento,
 así que despertar a uno basta. El despertado tiene que volver a comprobar el
 `while` porque otro comprador puede haberse llevado el asiento antes, y ninguna
-de las dos opciones atiende en orden. Aun así recomienda mantener `notifyAll()`
-«porque cumple `AGENTS.md`».
+de las dos opciones atiende por orden de llegada. Aun así recomienda mantener
+`notifyAll()` «porque cumple `AGENTS.md`».
 
 Valoración con el apartado 7.1: la parte técnica es correcta, pero la
-conclusión no tiene valor: la regla de `AGENTS.md` que cita es la que escribí
-yo en el apartado a), así que solo me repite lo que le dije. No explica en qué
-caso dejaría de valer `notify()`, que es lo importante. Mi análisis:
+conclusión no aporta nada: la regla de `AGENTS.md` que cita es la que se añadió
+en el apartado a), así que solo repite lo que se le dijo. Tampoco explica en qué
+caso dejaría de valer `notify()`, que es lo importante.
 
-En esta taquilla, tal como está, `notify()`
-funcionaría. Todos los que esperan esperan a lo mismo (que haya un asiento
-libre) y cada `devolver` libera exactamente uno, así que despertar a uno solo
-basta, y el `while` sigue protegiendo si un `comprar` normal se adelanta y se
-lleva el asiento (el despertado se vuelve a dormir y no hay nada más libre).
-Incluso ahorraría despertar a 9 hilos para nada en cada devolución.
-
-Pero solo vale mientras se cumplan esas dos condiciones, y dejaría de valer con
-cambios bastante normales:
+En esta taquilla, tal como está, `notify()` funcionaría: todos esperan a lo
+mismo y cada devolución libera un asiento, y el `while` protege si un `comprar`
+normal se adelanta (el despertado se vuelve a dormir y no queda nada libre).
+Pero dejaría de valer con cambios bastante normales:
 
 - Si se añade otro tipo de espera sobre el mismo cerrojo, por ejemplo
-  `esperarEntradas(cliente, n)` para un grupo que quiere 3 asientos juntos, o
-  esperar un asiento concreto. Un `notify()` podría despertar al del grupo de 3,
-  que ve que solo hay 1 libre y se vuelve a dormir, y el aviso se pierde: el que
-  quería 1 asiento sigue dormido con un asiento libre.
-- Si una operación libera varios asientos a la vez (devolver varias entradas o
-  cancelar una compra de 4): `notify()` despierta a uno solo aunque haya sitio
-  para cuatro.
+  `esperarEntradas(cliente, n)` para un grupo que quiere 3 asientos. Un
+  `notify()` podría despertar al del grupo, que ve que solo hay 1 libre y se
+  vuelve a dormir, y el aviso se pierde: el que quería 1 asiento sigue dormido
+  con un asiento libre.
+- Si una operación libera varios asientos a la vez (devolver varias entradas
+  con un solo aviso): `notify()` despierta a uno aunque haya sitio para más.
 
 Por eso la regla de los apuntes es usar `notifyAll()` salvo que se esté seguro
 de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.
@@ -385,12 +422,17 @@ de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.
 
 ## Cierre
 
-La IA acierta en lo que se le pide de forma concreta: encontró las condiciones
-de carrera reales y, con un prompt que decía qué cerrojo usar y qué fallos
-evitar, escribió una versión que pasa los verificadores. Lo que hace mal es
-afirmar: `TaquillaIA` se entregó como «completamente thread-safe» y rompe las
-cinco reglas en casi todas las rondas. En la auditoría contó dos veces el
-mismo fallo y señaló otro que no rompe el contrato, y con `notify()` justificó
-su respuesta con mi propia regla en vez de razonarla. Habría entregado código incorrecto en el primer momento, si
-me hubiera fiado de esa frase sin ejecutar el verificador, y en el Reto C con un
-`if` en lugar de `while`, que parece igual al leerlo y falla en 4 de cada 5 rondas.
+> **Pendiente del alumno:** reflexión propia de cinco líneas como máximo. Hechos
+> que se pueden usar:
+
+- `TaquillaIA` se entregó como «completamente thread-safe» y rompe las cinco
+  reglas: R2 y R3 en todas las rondas, R1, R4 y R5 en algunas.
+- En la auditoría, Codex encontró todas las carreras reales y solo dio una que
+  no rompe el contrato. Al revisar su respuesta se le marcó como error algo que
+  era correcto, y fue el propio Codex quien lo hizo ver después: también hay que
+  verificar lo que uno corrige.
+- Con `notify()` acertó en la parte técnica, pero justificó la conclusión con la
+  regla de `AGENTS.md` en lugar de razonarla.
+- Momentos en los que se habría entregado código incorrecto sin verificar: al
+  creer la frase de `TaquillaIA`, y en el Reto C con un `if` en lugar de `while`,
+  que parece igual al leerlo y falla en 4 de cada 5 rondas.
