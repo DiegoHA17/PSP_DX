@@ -239,3 +239,125 @@ bloquear: sus hilos compiten igual sobre el `ConcurrentHashMap` y además siguen
 vendiendo asientos repetidos que ya no existen. Con tan pocos datos y tan poco
 tiempo la diferencia está dentro del ruido; lo importante es que la versión
 correcta no es más lenta de forma apreciable.
+
+---
+
+## Reto C. Devoluciones y lista de espera
+
+### a) Regla añadida a `hilos/AGENTS.md`
+
+> Cuando un hilo tenga que esperar a que cambie el estado (por ejemplo, a que haya
+> un asiento libre), usa `wait()` sin tiempo dentro de `synchronized` sobre el
+> mismo cerrojo que protege ese estado, y siempre dentro de un `while` que vuelva
+> a comprobar la condición al despertar. No uses `Thread.sleep`,
+> `wait(milisegundos)` ni bucles que miren el estado una y otra vez: el hilo debe
+> quedar en estado WAITING. Quien cambie el estado (devolver un asiento) avisa con
+> `notifyAll()`. Si interrumpen al hilo mientras espera, captura
+> `InterruptedException` y devuelve `null`.
+
+### b) Implementación y revisión del diff
+
+Prompt (agente Build):
+
+> Implementa TaquillaEspera en guiada/TaquillaEspera.kt cumpliendo
+> TaquillaConEspera de guiada/Taquilla.kt. comprar, vendidas y recaudado igual
+> que en TaquillaSegura (un solo cerrojo para dueños, vendidas y caja).
+> devolver(cliente, asiento) solo funciona si el asiento es de ese cliente: lo
+> libera, resta 1 a vendidas, devuelve 25 € de la caja y avisa a los que esperan.
+> esperarEntrada(cliente) espera mientras no haya asientos libres y luego vende
+> uno. Sigue las reglas de AGENTS.md sobre cómo esperar. Modifica solo
+> TaquillaEspera.kt.
+
+Diff revisado: solo cambia `TaquillaEspera.kt`. El cerrojo pasa a ser un
+`Object()` (con `Any()` Kotlin no deja llamar a `wait()`/`notifyAll()`), la venta
+de un asiento se saca a una función privada `vender` que solo se llama con el
+cerrojo cogido, `devolver` comprueba el rango y el dueño antes de cambiar nada,
+y `esperarEntrada` hace `while (vendidas == aforo) cerrojo.wait()`. Al capturar
+`InterruptedException` vuelve a marcar el hilo como interrumpido antes de
+devolver `null`, que es lo recomendable para no perder la interrupción.
+
+### c) `VerificadorEspera`
+
+Versión final (las tres ejecuciones iguales):
+
+```text
+Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
+  E1 esperan en WAITING (sin espera activa)  OK
+  E2 devolver() solo vale al dueño           OK
+  E3 una devolución = un cliente servido     OK
+  E4 sin asientos repetidos                  OK
+  E5 interrupt() libera a los demás          OK
+  E6 vendidas() y recaudado() cuadran        OK
+VEREDICTO: ninguna regla rota (no demuestra que sea correcta)
+```
+
+Como salió OK a la primera, lo rompí a propósito cambiando el `while` por un
+`if` (`if (vendidas == aforo) cerrojo.wait()`):
+
+```text
+Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
+  E1 esperan en WAITING (sin espera activa)  OK
+  E2 devolver() solo vale al dueño           OK
+  E3 una devolución = un cliente servido     ROTA en 4/5 rondas
+  E4 sin asientos repetidos                  OK
+  E5 interrupt() libera a los demás          OK
+  E6 vendidas() y recaudado() cuadran        OK
+VEREDICTO: INCORRECTA
+```
+
+Salió igual (E3 rota en 4/5) en las tres ejecuciones, y además por la consola
+salen muchas excepciones en los hilos que esperan:
+
+```text
+Exception in thread "espera-5" java.lang.ArrayIndexOutOfBoundsException: Index -1 out of bounds for length 20
+```
+
+Por qué: cada `devolver` hace `notifyAll()` y despierta a los 10 que esperan,
+pero solo hay un asiento libre. El primero que coge el cerrojo se lo lleva. Los
+demás, con `if`, no vuelven a mirar la condición: siguen como si hubiera sitio,
+`indexOfFirst { it == null }` devuelve -1 y `duenos[-1]` lanza la excepción, que
+mata al hilo. Esos hilos mueren sin entrada aunque luego se devuelvan más
+asientos, así que se sirve a menos de 6 clientes → **E3**. E5 sale OK porque
+los hilos muertos ya no están vivos y E6 porque la excepción salta antes de
+tocar las cuentas. En una de las cinco rondas el reparto coincidió y no se
+notó, que es justo lo peligroso de estos fallos. Después lo dejé otra vez con
+`while`.
+
+### d) ¿En qué estado deben estar los que esperan?
+
+En **WAITING**: dormidos en `wait()` sin tiempo, sin gastar CPU, hasta que
+alguien haga `notifyAll()` (o los interrumpan). Si un hilo aparece en
+**TIMED_WAITING** es que espera con tiempo (`wait(ms)` o `Thread.sleep(ms)` en
+un bucle): se despierta cada poco a mirar si hay sitio aunque nadie haya
+devuelto nada. Es una espera activa disfrazada: gasta CPU y cerrojo para nada y
+además tarda en enterarse (hasta que acaba su tiempo). Puede vender bien, pero
+no espera como debe, y E1 lo comprueba mirando el estado de los hilos a los
+300 ms. Lo probé cambiando `cerrojo.wait()` por `cerrojo.wait(50)`: vende todo
+bien (E2 a E6 OK) pero **E1 sale ROTA en 5/5 rondas**.
+
+### e) ¿Podría usar `notify()` en lugar de `notifyAll()`?
+
+Pregunta hecha a la IA con el agente Plan: «¿Podría usar notify() en lugar de
+notifyAll() en esta taquilla?».
+
+Valoración con el apartado 7.1: en esta taquilla, tal como está, `notify()`
+funcionaría. Todos los que esperan esperan a lo mismo (que haya un asiento
+libre) y cada `devolver` libera exactamente uno, así que despertar a uno solo
+basta, y el `while` sigue protegiendo si un `comprar` normal se adelanta y se
+lleva el asiento (el despertado se vuelve a dormir y no hay nada más libre).
+Incluso ahorraría despertar a 9 hilos para nada en cada devolución.
+
+Pero solo vale mientras se cumplan esas dos condiciones, y dejaría de valer con
+cambios bastante normales:
+
+- Si se añade otro tipo de espera sobre el mismo cerrojo, por ejemplo
+  `esperarEntradas(cliente, n)` para un grupo que quiere 3 asientos juntos, o
+  esperar un asiento concreto. Un `notify()` podría despertar al del grupo de 3,
+  que ve que solo hay 1 libre y se vuelve a dormir, y el aviso se pierde: el que
+  quería 1 asiento sigue dormido con un asiento libre.
+- Si una operación libera varios asientos a la vez (devolver varias entradas o
+  cancelar una compra de 4): `notify()` despierta a uno solo aunque haya sitio
+  para cuatro.
+
+Por eso la regla de los apuntes es usar `notifyAll()` salvo que se esté seguro
+de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.

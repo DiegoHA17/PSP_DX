@@ -26,3 +26,9 @@ el alumno entienda y verifique el código, no solo que funcione.
 
 ## Reglas añadidas por el alumno
 <!-- Reto C, apartado a: añade aquí tu regla -->
+- Cuando un hilo tenga que esperar a que cambie el estado (por ejemplo, a que haya un asiento
+  libre), usa `wait()` sin tiempo dentro de `synchronized` sobre el mismo cerrojo que protege ese
+  estado, y siempre dentro de un `while` que vuelva a comprobar la condición al despertar. No uses
+  `Thread.sleep`, `wait(milisegundos)` ni bucles que miren el estado una y otra vez: el hilo debe
+  quedar en estado WAITING. Quien cambie el estado (devolver un asiento) avisa con `notifyAll()`.
+  Si interrumpen al hilo mientras espera, captura `InterruptedException` y devuelve `null`.
