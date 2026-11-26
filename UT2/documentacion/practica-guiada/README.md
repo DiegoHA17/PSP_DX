@@ -153,3 +153,89 @@ Relación entre reglas rotas y fallos:
 | R3 | Fallo 1 | **Sí.** Los números de asiento solo van de 0 a 199, así que la única forma de entregar más de 200 es repetir asientos: R3 se rompe porque se rompe R2 (por eso las dos salen 30/30) |
 | R4 | Fallo 2 (+4) | **Sí**, del fallo 2: se suma `n` aunque se hayan entregado menos |
 | R5 | Fallo 3 y fallo 2 | En parte: la venta parcial cobra de más; la pérdida de dinero es del fallo 3. En la ejecución 1 se rompen R2 y R3 en la ronda 1 con la caja bien, así que R5 tiene causa propia |
+
+---
+
+## Reto B. Que la IA lo arregle… y demostrar que está bien
+
+### a) Prompt (agente Build)
+
+> Implementa la clase TaquillaSegura en guiada/TaquillaSegura.kt cumpliendo el
+> contrato de guiada/Taquilla.kt. comprar(cliente, n) es todo o nada: si no
+> quedan n asientos libres no vende ninguno y devuelve una lista vacía; si
+> quedan, los vende todos a ese cliente, suma n a vendidas y n × PRECIO a la caja.
+>
+> En TaquillaIA encontré estos fallos y no deben repetirse: (1) containsKey y
+> put sobre el mapa no son atómicos y dos hilos se llevan el mismo asiento;
+> (2) se comprueba el aforo con contador.get() y se vende después, así que dos
+> hilos pasan la comprobación y uno recibe menos asientos de los pedidos;
+> (3) contador.addAndGet(n) suma lo pedido aunque se entreguen menos; (4) caja
+> += n * PRECIO no es atómico y se pierden ventas; (5) recaudado() lee caja sin
+> sincronizar.
+>
+> Usa un solo cerrojo con synchronized sobre un objeto privado que proteja los
+> tres datos (dueño de cada asiento, vendidas y caja). La comprobación de que
+> quedan n libres y la venta tienen que estar dentro del mismo bloque
+> synchronized. vendidas() y recaudado() también deben leer con el cerrojo. No
+> uses AtomicInteger ni ConcurrentHashMap dentro del synchronized. Modifica solo
+> TaquillaSegura.kt y explica qué invariante protege el cerrojo.
+
+### b) Revisión del diff antes de aceptar
+
+En la ventana Commit solo aparece `TaquillaSegura.kt`: no toca ningún fichero
+prohibido. Usa `synchronized` sobre un `Any()` privado, un `arrayOfNulls<String>`
+para los dueños y dos variables normales: todo está en el apartado 6.1 de los
+apuntes. Nada que deshacer.
+
+### c) Verificador con `fabrica = ::TaquillaSegura`
+
+Vueltas necesarias: **1** (la primera versión pasó las tres ejecuciones).
+
+```text
+Taquilla: TaquillaSegura · 30 rondas · 16 hilos · aforo 200 · tiempo 163.070400ms
+  R1 todo o nada                 OK
+  R2 asiento vendido dos veces   OK
+  R3 sobreventa                  OK
+  R4 vendidas() no cuadra        OK
+  R5 recaudado() no cuadra       OK
+VEREDICTO: ninguna regla rota en 30 rondas (no demuestra que sea correcta)
+```
+
+Las ejecuciones 2 y 3 dieron lo mismo (todo OK) en 155,6 ms y 193,6 ms.
+
+### d) Lista de comprobación
+
+| Pregunta | Respuesta para `TaquillaSegura` |
+|----------|---------------------------------|
+| ¿Sección crítica y cerrojo? ¿Todo el estado con el mismo cerrojo? | La sección crítica es todo el cuerpo de `comprar` desde que mira cuántos quedan hasta que actualiza la caja. La protege `synchronized(cerrojo)`, y `duenos`, `vendidas` y `caja` solo se tocan dentro de ese mismo cerrojo. Invariante: `vendidas` = asientos con dueño y `caja` = `vendidas` × 25 |
+| ¿Queda algún «comprobar y actuar» fuera del cerrojo? | No. El `if (aforo - vendidas < n)` y la búsqueda con `if (duenos[asiento] == null)` están dentro del bloque. Lo único fuera es `if (n <= 0)`, que no mira estado compartido |
+| ¿Los métodos de lectura usan cerrojo, `@Volatile` o atómica? | Sí, `vendidas()` y `recaudado()` hacen `synchronized(cerrojo)`. Sin eso, otro hilo podría ver un valor antiguo (visibilidad) o, con `Long` en algunas JVM, un valor a medio escribir |
+| ¿Mezcla herramientas sin necesidad? | No: dentro del `synchronized` solo hay un array y variables normales. Meter `AtomicInteger` ahí no aportaría nada |
+| ¿Más de un cerrojo? ¿Mismo orden? | Un único cerrojo, así que no puede haber interbloqueo por orden |
+
+### e) ¿Por qué «no demuestra que sea correcta»?
+
+Porque una prueba solo enseña los intercalados que han salido en esas 30
+rondas; que no aparezca un fallo no quiere decir que no pueda aparecer en otra
+máquina o con otra carga. Además el verificador no mira todo. Ejemplo que la
+lista detecta y el verificador no: si `vendidas()` y `recaudado()` leyeran sin
+cerrojo (`= caja` a secas), el verificador seguiría saliendo OK, porque solo los
+llama desde `main` después de `join()`, y `join()` ya garantiza ver lo escrito
+por los hilos. El problema de visibilidad solo aparece si se consulta la caja
+mientras se está vendiendo, y eso el verificador no lo hace. Tampoco detectaría,
+por ejemplo, dos cerrojos tomados en distinto orden si en la prueba no coinciden.
+
+Tiempos (mismo equipo, tres ejecuciones de 30 rondas):
+
+| Taquilla | Ejec. 1 | Ejec. 2 | Ejec. 3 | Media |
+|----------|--------:|--------:|--------:|------:|
+| `TaquillaIA` | 227,3 ms | 244,4 ms | 205,9 ms | 225,9 ms |
+| `TaquillaSegura` | 163,1 ms | 155,6 ms | 193,6 ms | 170,8 ms |
+
+La corrección no ha costado nada apreciable; de hecho la segura ha salido algo
+más rápida. El tiempo lo domina crear y arrancar 16 hilos × 30 rondas, y cada
+compra dentro del cerrojo es muy corta. `TaquillaIA` no gana nada por no
+bloquear: sus hilos compiten igual sobre el `ConcurrentHashMap` y además siguen
+vendiendo asientos repetidos que ya no existen. Con tan pocos datos y tan poco
+tiempo la diferencia está dentro del ruido; lo importante es que la versión
+correcta no es más lenta de forma apreciable.
