@@ -1,0 +1,12 @@
+IA: Codex (codex-cli 0.170.0), modo escritura en worktree aislado, 26/11/2026.
+Prompt: el de PENDIENTES.md, Reto B a), con la indicación de cumplir AGENTS.md (no compilar ni ejecutar).
+Fichero modificado: UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaSegura.kt (diff en codex_TaquillaSegura.patch).
+
+Respuesta de Codex:
+Modifiqué únicamente TaquillaSegura.kt.
+- Un solo `cerrojo` privado protege mapa, contador y caja mediante `synchronized`.
+- La comprobación y la venta completa ocurren juntas: entrega `n` asientos o ninguno.
+- `vendidas()` y `recaudado()` leen bajo el mismo cerrojo.
+- Invariante al terminar cada operación: un dueño por asiento, `contador == asientos.size`, `0 <= contador <= aforo` y `caja == contador * PRECIO`.
+- No usé `AtomicInteger` ni `ConcurrentHashMap`.
+- No compilé ni ejecuté el proyecto ni los verificadores.

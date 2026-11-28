@@ -12,8 +12,9 @@ integra en `main` mediante Pull Requests.
 | Unidad | Contenido | Estado | Código y documentación |
 |--------|-----------|--------|------------------------|
 | UT1 | Procesos y servicios | Evaluada ([problemas abiertos](UT1/documentacion/REVISION.md)) | [`UT1/`](UT1/README.md) |
+| UT2 | Programación multihilo | En curso | [`UT2/`](UT2/README.md) |
 
-Las siguientes unidades se añadirán como `UT2/`, `UT3/`… a medida que se
+Las siguientes unidades se añadirán como `UT3/`, `UT4/`… a medida que se
 publiquen sus prácticas.
 
 ## Ejecución

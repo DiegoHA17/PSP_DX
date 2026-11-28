@@ -35,3 +35,7 @@ desktop.ini
 .vscode/
 *.log
 *.tmp
+
+# Entregas con datos personales (nombre del alumno y capturas con la ruta del usuario):
+# se adjuntan a la tarea, no se publican en el repositorio
+**/entrega/

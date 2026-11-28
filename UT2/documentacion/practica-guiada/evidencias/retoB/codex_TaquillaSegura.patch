@@ -1,0 +1,39 @@
+diff --git a/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaSegura.kt b/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaSegura.kt
+index 09c6af1..427596a 100644
+--- a/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaSegura.kt
++++ b/UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaSegura.kt
+@@ -9,9 +9,31 @@ package es.dam.psp.ut2.guiada
+  */
+ class TaquillaSegura(override val aforo: Int) : Taquilla {
+ 
+-    override fun comprar(cliente: String, n: Int): List<Int> = TODO("Reto B")
++    private val cerrojo = Any()
++    private val asientos = mutableMapOf<Int, String>()
++    private var contador = 0
++    private var caja = 0L
+ 
+-    override fun vendidas(): Int = TODO("Reto B")
++    // Bajo cerrojo, cada asiento tiene un solo dueño y, al terminar cada operación:
++    // contador == asientos.size, 0 <= contador <= aforo y caja == contador * PRECIO.
++    override fun comprar(cliente: String, n: Int): List<Int> = synchronized(cerrojo) {
++        if (n <= 0 || n > aforo - contador) return@synchronized emptyList()
+ 
+-    override fun recaudado(): Long = TODO("Reto B")
++        val asignados = mutableListOf<Int>()
++        for (asiento in 0 until aforo) {
++            if (asignados.size == n) break
++            if (!asientos.containsKey(asiento)) {
++                asientos[asiento] = cliente
++                asignados.add(asiento)
++            }
++        }
++
++        contador += n
++        caja += n * PRECIO
++        asignados
++    }
++
++    override fun vendidas(): Int = synchronized(cerrojo) { contador }
++
++    override fun recaudado(): Long = synchronized(cerrojo) { caja }
+ }

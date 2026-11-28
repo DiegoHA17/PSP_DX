@@ -1,0 +1,10 @@
+# 26/11/2026 17:46:51 · usuario: DIEGO · rama: feat/ut2-practica-guiada
+# fabrica: val fabrica: (Int) -> Taquilla = ::TaquillaSegura val fabricaEspera: (Int) -> TaquillaConEspera = ::TaquillaEspera 
+Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
+  E1 esperan en WAITING (sin espera activa)  ROTA en 5/5 rondas
+  E2 devolver() solo vale al dueño           OK
+  E3 una devolución = un cliente servido     OK
+  E4 sin asientos repetidos                  OK
+  E5 interrupt() libera a los demás          OK
+  E6 vendidas() y recaudado() cuadran        OK
+VEREDICTO: INCORRECTA

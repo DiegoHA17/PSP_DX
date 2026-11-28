@@ -1,0 +1,11 @@
+IA: Codex (codex-cli 0.170.0), modo solo lectura, 26/11/2026, sobre la TaquillaEspera generada por Codex.
+Pregunta: «¿Podría usar notify() en lugar de notifyAll() en esta taquilla?»
+
+Respuesta de Codex:
+**Técnicamente sí, en esta implementación concreta**, pero las reglas de `AGENTS.md` exigen `notifyAll()`.
+- Todos los hilos de `esperarEntrada()` esperan la misma condición: `contador < aforo`.
+- Cada `devolver()` válido libera un único asiento; `notify()` despertaría a un solo hilo, suficiente para intentar comprarlo.
+- El hilo despertado debe recuperar `cerrojo` y comprobar otra vez el `while`: otro comprador podría adelantarse y ocupar el asiento.
+- `notifyAll()` despierta a todos los que esperan; compiten por `cerrojo` y quienes encuentren la taquilla llena vuelven a esperar.
+- Ninguna opción garantiza un orden justo de atención.
+Aquí mantendría **`notifyAll()`**: cumple la regla explícita y permite reevaluar la condición a todos los hilos pendientes.

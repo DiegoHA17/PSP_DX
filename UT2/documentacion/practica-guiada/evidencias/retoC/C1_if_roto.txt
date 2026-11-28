@@ -1,0 +1,195 @@
+# 26/11/2026 17:45:47 · usuario: DIEGO · rama: feat/ut2-practica-guiada
+# fabrica: val fabrica: (Int) -> Taquilla = ::TaquillaSegura val fabricaEspera: (Int) -> TaquillaConEspera = ::TaquillaEspera 
+Exception in thread "espera-4" Exception in thread "espera-3" Exception in thread "espera-2" Exception in thread "espera-1" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-8" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-7" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-4" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-6" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-5" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-3" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-2" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-1" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-9" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-8" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-6" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-7" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-5" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-4" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-3" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-2" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-1" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-9" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-7" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-6" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-3" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-2" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-4" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-5" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-1" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-8" Exception in thread "espera-6" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-3" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-1" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-7" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-5" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-4" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Exception in thread "espera-2" java.util.NoSuchElementException: List is empty.
+	at kotlin.collections.CollectionsKt___CollectionsKt.first(_Collections.kt:221)
+	at es.dam.psp.ut2.guiada.TaquillaEspera.esperarEntrada(TaquillaEspera.kt:60)
+	at es.dam.psp.ut2.guiada.VerificadorEsperaKt.rondaEspera$lambda$3$lambda$2(VerificadorEspera.kt:48)
+	at kotlin.concurrent.ThreadsKt$thread$thread$1.run(Thread.kt:30)
+Taquilla: TaquillaEspera · 5 rondas · 10 esperan · 6 devuelven
+  E1 esperan en WAITING (sin espera activa)  OK
+  E2 devolver() solo vale al dueño           OK
+  E3 una devolución = un cliente servido     ROTA en 4/5 rondas
+  E4 sin asientos repetidos                  OK
+  E5 interrupt() libera a los demás          OK
+  E6 vendidas() y recaudado() cuadran        OK
+VEREDICTO: INCORRECTA

@@ -1,0 +1,10 @@
+IA: Codex (codex-cli 0.170.0), modo escritura en worktree aislado, 26/11/2026.
+Prompt: el de PENDIENTES.md, Reto C b), con AGENTS.md ya con la regla del alumno.
+Fichero modificado: UT2/hilos/src/main/kotlin/es/dam/psp/ut2/guiada/TaquillaEspera.kt (diff en codex_TaquillaEspera.patch).
+
+Respuesta de Codex:
+Modificado únicamente `TaquillaEspera.kt`:
+- Compras, dueños, vendidas y caja protegidos por un único cerrojo, siguiendo `TaquillaSegura`.
+- Devoluciones solo del propietario, con reembolso de 25 € y `notifyAll()`.
+- Espera con `while` y `wait()` sin tiempo; devuelve `null` ante interrupción.
+- Revisado el diff sin errores de formato. No he compilado ni ejecutado código ni pruebas.

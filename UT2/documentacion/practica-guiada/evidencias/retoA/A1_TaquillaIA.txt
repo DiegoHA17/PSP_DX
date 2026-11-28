@@ -1,0 +1,8 @@
+Taquilla: TaquillaIA · 30 rondas · 16 hilos · aforo 200 · tiempo 145.094500ms
+  R1 todo o nada                 ROTA en 7/30 rondas
+  R2 asiento vendido dos veces   ROTA en 30/30 rondas
+  R3 sobreventa                  ROTA en 30/30 rondas
+  R4 vendidas() no cuadra        ROTA en 8/30 rondas
+  R5 recaudado() no cuadra       ROTA en 13/30 rondas
+  Primer fallo · Ronda 1: entregados 231 asientos, vendidas()=231, recaudado()=5650 € (debería ser 5775 €)
+VEREDICTO: INCORRECTA
