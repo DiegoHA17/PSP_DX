@@ -1,6 +1,6 @@
 # UT2 — Programación multihilo
 
-**Estado:** en curso.
+**Estado:** práctica guiada completada; unidad en curso.
 
 Contenidos: creación y control de hilos (`thread`, `join`, `interrupt`), estados
 de un hilo, condiciones de carrera, `synchronized`, atómicas y cerrojos, y

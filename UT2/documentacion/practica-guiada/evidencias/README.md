@@ -7,7 +7,7 @@ respuestas y los diffs son de Codex (asistente de programación). Cada fichero d
 ejecución empieza con la fecha, el usuario, la rama y las líneas `fabrica` /
 `fabricaEspera` que había en ese momento (excepto `A1`, que se guardó antes de
 añadir esa cabecera). Las capturas de IntelliJ van en la hoja de `../entrega/`,
-que no se sube al repositorio (pasos en `../PENDIENTES.md`).
+que no se sube al repositorio (estado en `../PENDIENTES.md`).
 
 ## Reto A · `TaquillaIA`
 

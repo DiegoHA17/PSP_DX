@@ -5,14 +5,13 @@
 **Fecha:** 26/11/2026 · **Asistente de programación:** Codex (Codex CLI 0.170.0),
 en lugar de opencode · **Coordinador:** Claude Code
 
-> Versión pública en Markdown de la hoja de registro. El Word y el PDF que se
+> Versión pública en Markdown de la hoja de registro (sin nombre ni capturas). El Word y el PDF que se
 > entregan, con el nombre del alumno y las capturas, están en `entrega/`, que no
 > se sube al repositorio. Los resultados son de ejecuciones reales hechas por
 > Claude Code en la terminal (salidas completas en
 > [`evidencias/`](evidencias/README.md)). El código de los Retos B y C y las
-> respuestas de IA son de Codex. Solo quedan marcados los apartados de
-> **[REVISIÓN PERSONAL]** y **[REFLEXIÓN PERSONAL]**; los pasos de las capturas
-> están en [`PENDIENTES.md`](PENDIENTES.md).
+> respuestas de IA son de Codex. La revisión del Reto A c) y la reflexión del
+> cierre son del alumno.
 
 | Reto | Qué debe aparecer (enunciado) |
 |------|-------------------------------|
@@ -56,15 +55,18 @@ hilos coinciden justo en la zona peligrosa.
 
 | Fallo | Lo encontré yo | Lo encontró la IA | ¿Real o falso positivo? |
 |-------|:--------------:|:-----------------:|-------------------------|
-| `containsKey` + `put` | [REVISIÓN PERSONAL] | Sí | Real (R2) |
-| Comprobar aforo y vender por separado | [REVISIÓN PERSONAL] | Sí | Real: R3, junto con el asiento repetido (Codex lo explica bien) |
-| Compra parcial (`addAndGet(n)`) | [REVISIÓN PERSONAL] | Sí | Real (R1, R4, R5) |
-| `caja +=` | [REVISIÓN PERSONAL] | Sí | Real (R5) |
-| Lecturas separadas de `vendidas()` y `recaudado()` | [REVISIÓN PERSONAL] | Sí | Falso positivo: el contrato no pide leerlas a la vez |
-| Visibilidad de `caja` | [REVISIÓN PERSONAL] | Sí | Real, el verificador no lo detecta |
+| `containsKey` + `put` | Sí | Sí | Real (R2) |
+| Comprobar aforo y vender por separado | Sí | Sí | Real: R3, junto con el asiento repetido (Codex lo explica bien) |
+| Compra parcial (`addAndGet(n)`) | Sí | Sí | Real (R1, R4, R5) |
+| `caja +=` | Sí | Sí | Real (R5) |
+| Lecturas separadas de `vendidas()` y `recaudado()` | Sí | Sí | Falso positivo: el contrato no pide leerlas a la vez |
+| Visibilidad de `caja` | No | Sí | Real, el verificador no lo detecta |
 
-**[REVISIÓN PERSONAL]** Columna «Lo encontré yo»: marca Sí/No según lo que viste
-tú al leer `TaquillaIA.kt` antes de mirar la respuesta de Codex.
+La columna «Lo encontré yo» es mi revisión de `TaquillaIA.kt` antes de leer la
+respuesta de Codex. Encontré cinco de los seis puntos; se me escapó la
+visibilidad de `caja`, que Codex sí vio. Las lecturas separadas también me
+parecieron un fallo, pero al contrastarlo con el contrato es un falso positivo,
+igual que en la respuesta de Codex.
 
 **Apartado d:** `AtomicInteger` y `ConcurrentHashMap` solo hacen atómica cada
 operación suelta, pero `comprar` encadena varias (comprobar, buscar, ocupar,
@@ -178,9 +180,14 @@ asientos con un solo aviso.
 
 ## Cierre
 
-**[REFLEXIÓN PERSONAL]** Cinco líneas como máximo: qué ha hecho bien la IA y qué
-no, y en qué momento habrías entregado código incorrecto sin verificarlo. Se
-escribe en la hoja entregada.
+La IA acertó en lo técnico: Codex encontró todas las carreras reales de
+`TaquillaIA`, incluida la visibilidad de `caja` que yo no vi, y su código de los
+Retos B y C pasó los verificadores a la primera. Falló en el criterio: dio por
+fallo las lecturas separadas, justificó `notifyAll()` solo con `AGENTS.md` y no
+probó nada; que su código funcionaba solo se supo al revisar el diff y ejecutar.
+Habría entregado código incorrecto si me hubiera fiado de que `TaquillaIA` era
+«completamente thread-safe», y en el Reto C con un `if` en lugar de `while`, que
+parece igual y falla en 4 de cada 5 rondas.
 
 ---
 

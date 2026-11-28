@@ -27,6 +27,11 @@ Home, JDK 21. Las salidas de este documento son de ejecuciones reales desde la
 terminal (`./gradlew run`), no desde IntelliJ. Cada salida está entera, con
 fecha, usuario y línea `fabrica`, en [`evidencias/`](evidencias/README.md).
 
+Las cuatro capturas de la entrega se obtuvieron después mediante ejecuciones
+reales en IntelliJ. Están incorporadas al Word y al PDF de la carpeta privada
+`entrega/`, junto con el ZIP de entrega. Sus cifras pueden variar respecto a
+las mediciones de terminal. Estado y archivos: [`PENDIENTES.md`](PENDIENTES.md).
+
 ## Quién ha hecho qué
 
 El enunciado propone opencode como asistente. En esta práctica se ha usado
@@ -37,7 +42,8 @@ El enunciado propone opencode como asistente. En esta práctica se ha usado
 |-------|-------|--------------|
 | Asistente de programación | **Codex** | Auditoría de `TaquillaIA` en modo solo lectura (Reto A c). Código de `TaquillaSegura` y `TaquillaEspera` en modo escritura, en la rama de pruebas `prueba/ut2-opencode` (commits `643f175` y `09d7932`). Respuesta sobre `notify()` (Reto C e). Revisión independiente en modo solo lectura |
 | Coordinador | **Claude Code** | Preparar los prompts, pasarle el trabajo a Codex y revisar sus respuestas y diffs antes de aceptarlos. Llevar el código revisado a esta rama (`fda5ebe`, `ec72d97`), ejecutar los verificadores (también la versión rota con `if` y la prueba con `wait(50)`) y redactar la documentación. Análisis de `TaquillaIA` (Reto A a, b y d). Una primera versión del código de los Retos B y C (`a3cc316`, `62160d1`), sustituida después por la de Codex |
-| Alumno | Diego | Capturas en IntelliJ, revisión propia de la auditoría y reflexión final (ver [`PENDIENTES.md`](PENDIENTES.md)) |
+| Preparación de la entrega | **Codex** | Automatización de las cuatro ejecuciones y capturas reales de IntelliJ, inserción en el documento y revisión de la maquetación. Los cambios temporales se restauraron |
+| Alumno | Diego | Revisión propia de la auditoría y reflexión final, conservadas en [`HOJA_REGISTRO.md`](HOJA_REGISTRO.md) y en la entrega privada |
 
 ---
 
@@ -432,8 +438,9 @@ de que todos esperan a la misma condición y cada aviso sirve exactamente a uno.
 
 ## Cierre
 
-> **[REFLEXIÓN PERSONAL]** La escribe el alumno en la hoja de registro, cinco
-> líneas como máximo. Hechos que se pueden usar:
+La revisión personal y la reflexión del alumno están completas en
+[`HOJA_REGISTRO.md`](HOJA_REGISTRO.md) y se conservan en la entrega privada.
+Los siguientes puntos resumen las observaciones de las pruebas:
 
 - `TaquillaIA` se entregó como «completamente thread-safe» y rompe las cinco
   reglas: R2 y R3 en casi todas las rondas, R1, R4 y R5 en algunas.
